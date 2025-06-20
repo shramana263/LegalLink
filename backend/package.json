@@ -1,0 +1,66 @@
+{
+    "name": "express-ts-template",
+    "version": "1.2.0",
+    "description": "Simple starter template for ExpressJs and TypeScript based on expressjs/generator and TypeScript-Node-Starter",
+    "main": "server.js",
+    "scripts": {
+        "start": "node dist/server.js",
+        "build": "tsc",
+        "dev": "prisma generate && nodemon ./src/server.ts --exec ts-node",
+        "dev:node": "nodemon ./src/server.ts --exec ts-node --swc",
+        "watch-node": "nodemon dist/server.js",
+        "make:migrations": "prisma migrate dev --name ",
+        "apply:migrations": "prisma migrate deploy",
+        "generate:client": "prisma generate",
+        "lint": "eslint src/*.ts",
+        "typecheck": "tsc --noEmit"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@oslojs/otp": "^1.1.0",
+        "@prisma/client": "^6.9.0",
+        "better-auth": "^1.2.9",
+        "cloudinary": "^2.6.1",
+        "cookie-parser": "^1.4.7",
+        "cors": "^2.8.5",
+        "express": "^4.16.2",
+        "http-errors": "^1.7.1",
+        "morgan": "^1.9.1",
+        "multer": "^2.0.1",
+        "nodemailer": "^7.0.3",
+        "resend": "^4.6.0",
+        "swagger-jsdoc": "^6.2.8",
+        "swagger-ui-express": "^5.0.1",
+        "ts-node": "^10.9.2"
+    },
+    "devDependencies": {
+        "@swc/core": "^1.12.3",
+        "@types/cookie-parser": "^1.4.9",
+        "@types/cors": "^2.8.19",
+        "@types/express": "4.17.21",
+        "@types/http-errors": "1.8.2",
+        "@types/morgan": "1.9.9",
+        "@types/multer": "^1.4.13",
+        "@types/node": "14.18.63",
+        "@types/nodemailer": "^6.4.17",
+        "@types/swagger-jsdoc": "^6.0.4",
+        "@types/swagger-ui-express": "^4.1.8",
+        "@typescript-eslint/eslint-plugin": "4.33.0",
+        "concurrently": "6.5.1",
+        "eslint": "7.32.0",
+        "eslint-plugin-import": "2.31.0",
+        "nodemon": "2.0.22",
+        "prisma": "^6.9.0",
+        "typescript": "4.9.5"
+    },
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "@prisma/client",
+            "@prisma/engines",
+            "@scarf/scarf",
+            "@swc/core",
+            "prisma"
+        ]
+    }
+}

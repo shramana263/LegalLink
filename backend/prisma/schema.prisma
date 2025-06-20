@@ -1,0 +1,220 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String             @id
+  name             String
+  email            String             @unique
+  emailVerified    Boolean
+  image            String?
+  createdAt        DateTime
+  updatedAt        DateTime
+  city             String?
+  district         String?
+  location         String?
+  state            String?
+  userType         String?            @default("client")
+  accounts         Account[]
+  advocates        advocates?
+  sessions         Session[]
+  advocate_reports advocate_reports[]
+  post_reactions   post_reactions[]
+  post_comments    post_comments[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verification")
+}
+
+model advocates {
+  advocate_id               String   @id @default(uuid()) @db.Uuid
+  registration_number       String
+  reference_number          String
+  verification_document_url String
+  contact_email             String?
+  phone_number              String?
+  qualification             String?
+  experience_years          String?
+  availability_status       Boolean? @default(true)
+  language_preferences      String[] @default([]) // e.g. ["English", "Hindi", "Bengali"]
+  location_city             String?
+  jurisdiction_states       String[] @default([])
+  is_verified               Boolean  @default(false)
+  verification_status       String   @default("pending") // e.g. "pending", "verified", "rejected", "suspended_by_reports"
+  fee_structure             Json?
+  userId                    String   @unique
+  user                      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  specializations  advocate_specializations[]
+  ratings          advocate_ratings[]
+  advocate_reports advocate_reports[]
+  advocate_cases   advocate_cases[]
+  advocate_posts   advocate_posts[]
+}
+
+model advocate_specializations {
+  id             String         @id @default(uuid()) @db.Uuid
+  advocate_id    String         @db.Uuid
+  specialization Specialization
+  advocate       advocates      @relation(fields: [advocate_id], references: [advocate_id], onDelete: Cascade)
+}
+
+model advocate_ratings {
+  rating_id   String    @id @default(uuid()) @db.Uuid
+  advocate_id String    @db.Uuid
+  user_id     String
+  stars       Int
+  feedback    String
+  created_at  DateTime  @default(now()) @db.Timestamp(6)
+  advocate    advocates @relation(fields: [advocate_id], references: [advocate_id], onDelete: Cascade)
+}
+
+model jurisdictions {
+  jurisdiction_id String  @id @default(uuid()) @db.Uuid
+  name            String
+  level           String
+  state_name      String
+  bench           String?
+}
+
+enum Specialization {
+  CRIMINAL
+  CIVIL
+  CORPORATE
+  FAMILY
+  CYBER
+  INTELLECTUAL_PROPERTY
+  TAXATION
+  LABOR
+  ENVIRONMENT
+  HUMAN_RIGHTS
+  OTHER
+}
+
+model advocate_reports {
+  report_id        String         @id @default(uuid()) @db.Uuid
+  advocate_id      String         @db.Uuid
+  reporter_user_id String
+  reason           String
+  details          String?
+  category         ReportCategory
+  created_at       DateTime       @default(now())
+  status           String         @default("pending") // "pending" | "reviewed" | "resolved" 
+  action_taken     String? // e.g. "Suspended", "Warning Issued", etc.
+
+  user     User      @relation(fields: [reporter_user_id], references: [id], onDelete: Cascade)
+  advocate advocates @relation(fields: [advocate_id], references: [advocate_id], onDelete: Cascade)
+}
+
+enum ReportCategory {
+  FRAUD
+  MISCONDUCT
+  FAKE_PROFILE
+  ABUSE
+  OTHER
+}
+
+model advocate_cases {
+  case_id         String                @id @default(uuid()) @db.Uuid
+  advocate_id     String                @db.Uuid
+  case_type       Specialization
+  role            String
+  year            Int
+  outcome         advocate_case_outcome
+  description     String?
+  court_name      String?
+  duration_months Int?
+  created_at      DateTime              @default(now())
+
+  advocate advocates @relation(fields: [advocate_id], references: [advocate_id], onDelete: Cascade)
+}
+
+enum advocate_case_outcome {
+  WON
+  LOST
+  PENDING
+  SETTLED
+  DISMISSED
+}
+
+model advocate_posts {
+  post_id     String           @id @default(uuid()) @db.Uuid
+  advocate_id String           @db.Uuid
+  text        String
+  image_url   String?
+  created_at  DateTime         @default(now())
+  advocate    advocates        @relation(fields: [advocate_id], references: [advocate_id], onDelete: Cascade)
+  reactions   post_reactions[]
+  comments    post_comments[]
+}
+
+model post_reactions {
+  id         String         @id @default(uuid()) @db.Uuid
+  post_id    String         @db.Uuid
+  user_id    String
+  type       String // "like", "love", "angry", etc.
+  created_at DateTime       @default(now())
+  post       advocate_posts @relation(fields: [post_id], references: [post_id], onDelete: Cascade)
+  user       User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([post_id, user_id])
+}
+
+model post_comments {
+  id         String         @id @default(uuid()) @db.Uuid
+  post_id    String         @db.Uuid
+  user_id    String
+  comment    String
+  created_at DateTime       @default(now())
+  post       advocate_posts @relation(fields: [post_id], references: [post_id], onDelete: Cascade)
+  user       User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
