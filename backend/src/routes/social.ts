@@ -432,6 +432,20 @@ router.get("/post/my", async (req, res) => {
   }
 });
 
+router.get("/post/:advocate_id", async (req, res) => {
+  const advocate_id = req.params.advocate_id;
+  try {
+    const posts = await prisma.advocate_posts.findMany({
+      where: { advocate_id },
+      orderBy: { created_at: "desc" },
+    });
+    res.json(posts);
+  } catch (err) {
+    console.log("Fetch Error:", err);
+    res.status(500).json({ error: "Fetch failed", details: err.message });
+  }
+});
+
 router.delete("/post/:post_id", async (req, res) => {
   const { post_id } = req.params;
   const advocate_id = res.locals.advocate.advocate_id;
