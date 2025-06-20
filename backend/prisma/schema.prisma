@@ -196,6 +196,7 @@ model advocate_posts {
   advocate_id String           @db.Uuid
   text        String
   image_url   String?
+  category    Specialization   @default(OTHER)
   created_at  DateTime         @default(now())
   advocate    advocates        @relation(fields: [advocate_id], references: [advocate_id], onDelete: Cascade)
   reactions   post_reactions[]
