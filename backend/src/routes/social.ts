@@ -77,6 +77,37 @@ const router = express.Router();
 
 /**
  * @swagger
+ * /api/social/post/search:
+ *   post:
+ *     summary: Search for posts
+ *     tags:
+ *       - Advocate Posts
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - query
+ *             properties:
+ *               query:
+ *                 type: string
+ *               category:
+ *                 type: string
+ *                 example: CRIMINAL
+ *                 enum: [CRIMINAL, CIVIL, CORPORATE, FAMILY, CYBER, INTELLECTUAL_PROPERTY, TAXATION, LABOR, ENVIRONMENT, HUMAN_RIGHTS, OTHER]
+ *     responses:
+ *       200:
+ *         description: Reaction added or updated
+ *       400:
+ *         description: Missing fields
+ *       500:
+ *         description: React failed
+ */
+
+/**
+ * @swagger
  * /api/social/post/comment:
  *   post:
  *     summary: Comment on a post
@@ -164,11 +195,14 @@ const router = express.Router();
  *             type: object
  *             required:
  *               - text
+ *               - category
  *             properties:
  *               text:
  *                 type: string
  *               image_url:
  *                 type: string
+ *               category:
+ *                type: string
  *     responses:
  *       201:
  *         description: Post created
@@ -196,12 +230,15 @@ const router = express.Router();
  *             required:
  *               - post_id
  *               - text
+ *               - category
  *             properties:
  *               post_id:
  *                 type: string
  *               text:
  *                 type: string
  *               image_url:
+ *                 type: string
+ *               category:
  *                 type: string
  *     responses:
  *       201:
@@ -217,6 +254,26 @@ const router = express.Router();
  * /api/social/post/my:
  *   get:
  *     summary: Get posts created by the authenticated advocate
+ *     tags:
+ *       - Advocate Posts
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of posts
+ *       500:
+ *         description: Fetch failed
+ */
+
+/**
+ * @swagger
+ * /api/social/post/{advocate_id}:
+ *   get:
+ *     parameters:
+ *      - in: path
+ *        name: advocate_id
+ *        required: true
+ *     summary: Get posts created by the advocate by advocate ID
  *     tags:
  *       - Advocate Posts
  *     security:
@@ -266,6 +323,37 @@ router.get("/post/all", async (req, res) => {
     res
       .status(500)
       .json({ error: "Failed to fetch posts", details: err.message });
+  }
+});
+
+router.post("/post/search", async (req, res) => {
+  const { query, category } = req.body;
+
+  if (!query || typeof query !== "string") {
+    return res.status(400).json({ error: "Query parameter is required" });
+  }
+
+  try {
+    const posts = await prisma.advocate_posts.findMany({
+      where: {
+        text: {
+          contains: query,
+          mode: "insensitive",
+        },
+        category: category ? { equals: category.toUpperCase() } : undefined,
+      },
+      orderBy: { created_at: "desc" },
+      include: {
+        advocate: { select: { user: { select: { name: true, image: true } } } },
+        _count: {
+          select: { reactions: true, comments: true },
+        },
+      },
+    });
+    res.json(posts);
+  } catch (err) {
+    console.error("Search Error:", err);
+    res.status(500).json({ error: "Search failed", details: err.message });
   }
 });
 
@@ -386,19 +474,38 @@ router.use(getUser);
 router.use(getAdvocate);
 router.use(isAdvocateVerified);
 
+const SPECIALIZATION_ENUM = [
+  "CRIMINAL",
+  "CIVIL",
+  "CORPORATE",
+  "FAMILY",
+  "CYBER",
+  "INTELLECTUAL_PROPERTY",
+  "TAXATION",
+  "LABOR",
+  "ENVIRONMENT",
+  "HUMAN_RIGHTS",
+  "OTHER",
+];
+
 router.post("/post/create", async (req, res) => {
-  const { text, image_url } = req.body;
+  const { text, image_url, category } = req.body;
   const advocate_id = res.locals.advocate.advocate_id;
 
-  if (!text || text.split(" ").length > 100) {
-    return res
-      .status(400)
-      .json({ error: "Text is required and must be under 100 words" });
+  if (
+    !text ||
+    text.split(" ").length > 100 ||
+    !SPECIALIZATION_ENUM.includes(category.toUpperCase())
+  ) {
+    return res.status(400).json({
+      error:
+        "Text is required and must be under 100 words and category is also required",
+    });
   }
 
   try {
     const post = await prisma.advocate_posts.create({
-      data: { advocate_id, text, image_url },
+      data: { advocate_id, text, image_url, category: category.toUpperCase() },
     });
     res.status(201).json({ status: true, data: post });
   } catch (err) {
@@ -409,10 +516,15 @@ router.post("/post/create", async (req, res) => {
 });
 
 router.post("/post/edit", async (req, res) => {
-  const { post_id, text, image_url } = req.body;
+  const { post_id, text, image_url, category } = req.body;
   const advocate_id = res.locals.advocate.advocate_id;
 
-  if (!post_id || !text || text.split(" ").length > 100) {
+  if (
+    !post_id ||
+    !text ||
+    text.split(" ").length > 100 ||
+    !SPECIALIZATION_ENUM.includes(category.toUpperCase())
+  ) {
     return res.status(400).json({
       error: "Post ID and text are required, and text must be under 100 words",
     });
@@ -421,7 +533,7 @@ router.post("/post/edit", async (req, res) => {
   try {
     const post = await prisma.advocate_posts.update({
       where: { post_id },
-      data: { advocate_id, text, image_url },
+      data: { advocate_id, text, image_url, category: category.toUpperCase() },
     });
     res.status(201).json({ status: true, data: post });
   } catch (err) {
