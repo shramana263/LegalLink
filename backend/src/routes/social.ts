@@ -352,10 +352,17 @@ router.get("/post/:post_id/reactions", async (req, res) => {
   const { post_id } = req.params;
 
   try {
-    const reactions = await prisma.post_reactions.findMany({
+    const reactions = await prisma.post_reactions.groupBy({
+      by: ["type"],
       where: { post_id },
+      _count: { type: true },
     });
-    res.json(reactions);
+    // Format: { like: 2, love: 1, ... }
+    const result: Record<string, number> = {};
+    reactions.forEach(r => {
+      result[r.type] = r._count.type;
+    });
+    res.json(result);
   } catch (err) {
     res.status(500).json({ error: "Fetch failed", details: err.message });
   }
