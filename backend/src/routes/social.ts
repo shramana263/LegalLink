@@ -368,6 +368,20 @@ router.get("/post/:post_id/reactions", async (req, res) => {
   }
 });
 
+router.get("/post/:advocate_id", async (req, res) => {
+  const advocate_id = req.params.advocate_id;
+  try {
+    const posts = await prisma.advocate_posts.findMany({
+      where: { advocate_id },
+      orderBy: { created_at: "desc" },
+    });
+    res.json(posts);
+  } catch (err) {
+    console.log("Fetch Error:", err);
+    res.status(500).json({ error: "Fetch failed", details: err.message });
+  }
+});
+
 router.use(getUser);
 router.use(getAdvocate);
 router.use(isAdvocateVerified);
@@ -420,20 +434,6 @@ router.post("/post/edit", async (req, res) => {
 router.get("/post/my", async (req, res) => {
   console.log("Fetching posts for advocate");
   const advocate_id = res.locals.advocate.advocate_id;
-  try {
-    const posts = await prisma.advocate_posts.findMany({
-      where: { advocate_id },
-      orderBy: { created_at: "desc" },
-    });
-    res.json(posts);
-  } catch (err) {
-    console.log("Fetch Error:", err);
-    res.status(500).json({ error: "Fetch failed", details: err.message });
-  }
-});
-
-router.get("/post/:advocate_id", async (req, res) => {
-  const advocate_id = req.params.advocate_id;
   try {
     const posts = await prisma.advocate_posts.findMany({
       where: { advocate_id },
