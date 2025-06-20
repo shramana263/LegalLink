@@ -1,0 +1,244 @@
+
+POST http://localhost:3000/api/auth/sign-up/email
+Content-Type: application/json
+
+{
+  "name": "Mrinmoy Mondal",
+  "email": "mrinmoymondalreal34@yopmail.com",
+  "password": "StrongP@ssw0rd",
+  "userType": "advocate"
+}
+
+####
+
+@sessionToken=vZ980HySBHEPGOASzrbwUwTqRU3yDjOa.hDrBrDaQjWqabZ7hFovr1NLs0ofAZYy0aLEWCWzImmo%3D
+
+
+####
+
+GET http://localhost:3000/api/auth/verify-email?token=eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6Im1yaW5tb3ltb25kYWxyZWFsMzRAeW9wbWFpbC5jb20iLCJpYXQiOjE3NTAxNDk5OTUsImV4cCI6MTc1MDE1MzU5NX0.9EZcNWrHlG22r76qfG7wjs2P5Z-MCpCv0bkTSk-RBFQ&callbackURL=/
+Cookie: better-auth.session_token={{sessionToken}}
+
+####
+
+POST http://localhost:3000/api/auth/sign-in/email
+Content-Type: application/json
+Cookie: better-auth.session_token={{sessionToken}}
+
+{
+  "email": "mrinmoymondalreal@yopmail.com",
+  "password": "StrongP@ssw0rd"
+}
+
+
+####
+POST http://localhost:3000/api/upload
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="C:\Users\MRINMOY MONDAL\Downloads\original-a7014886bb4d89fcd3b2e75aa175f6bc.webp"
+Content-Type: image/webp
+
+< C:\Users\MRINMOY MONDAL\Downloads\original-a7014886bb4d89fcd3b2e75aa175f6bc.webp
+--WebAppBoundary--
+
+####
+POST http://localhost:3000/api/advocate/register
+Content-Type: application/json
+Cookie: better-auth.session_token={{sessionToken}}
+
+{
+  "name": "Mrinmoy Mondal",
+  "registration_number": "REG123456",
+  "reference_number": "REF123456",
+  "verification_document_url": "https://res.cloudinary.com/dcv8xqpku/image/upload/v1750081320/wmelbegbfyzln70difaw.webp"
+}
+
+####
+GET http://localhost:3000/api/advocate/me
+Cookie: better-auth.session_token={{sessionToken}}
+
+####
+POST http://localhost:3000/api/advocate/verify
+Cookie: better-auth.session_token={{sessionToken}}
+
+
+####
+GET http://localhost:3000/api/advocate/specializations
+Cookie: better-auth.session_token={{sessionToken}}
+
+####
+POST http://localhost:3000/api/advocate/add-specialization
+Cookie: better-auth.session_token={{sessionToken}}
+Content-Type: application/json
+
+{
+  "specialization": "FAMILY"
+}
+
+####
+POST http://localhost:3000/api/add-rating/df97409f-7339-4d37-a26c-5272b2092803
+Content-Type: application/json
+Cookie: better-auth.session_token={{sessionToken}}
+
+{
+  "stars": 5,
+  "feedback": "Excellent service and very professional."
+}
+
+####
+GET http://localhost:3000/api/get-rating/df97409f-7339-4d37-a26c-5272b2092803
+Cookie: better-auth.session_token={{sessionToken}}
+
+####
+GET http://localhost:3000/api/get-advocate/df97409f-7339-4d37-a26c-5272b2092803
+
+### Search advocates with multiple filters
+POST http://localhost:3000/api/search/advocate
+Cookie: better-auth.session_token={{sessionToken}}
+Content-Type: application/json
+
+{
+  # "jurisdiction_states": ["Tripura", "Haryana"],
+  # "location_city": "Howrah",
+  # "specialization": "FAMILY",
+  # "availability_status": true
+}
+
+  # "location_city": "Delhi",
+  # "specialization": "FAMILY",
+  # "availability_status": true,
+  # "language_preferences": ["English", "Hindi"],
+  # "experience_level": "Senior",
+  # "fee_type": "Consultation",
+  # "max_fee": 5000,
+  # "min_rating": 3,
+  # "sort_by": "rating",
+  # "sort_order": "desc"
+
+### 🔍 Test Advocate Location Search (City + State match)
+POST http://localhost:3000/api/advocate/location-search
+Cookie: better-auth.session_token={{sessionToken}}
+Content-Type: application/json
+
+{
+  "location_city": "Kolkata",
+  "state_name": "West Bengal"
+}
+
+
+### 🚨 Report an Advocate (for fraud)
+POST http://localhost:3000/api/advocate/report
+Cookie: better-auth.session_token={{sessionToken}}
+Content-Type: application/json
+
+{
+  "advocate_id": "df97409f-7339-4d37-a26c-5272b2092803",
+  "category": "Fraud",
+  "reason": "The advocate demanded extra payment via UPI.",
+  "details": "He insisted on ₹15,000 via Google Pay before the case even started."
+}
+
+### Add New cases
+POST http://localhost:3000/api/advocate/add-case
+Content-Type: application/json
+Cookie: better-auth.session_token={{sessionToken}}
+
+{
+    "case_type": "Civil",
+    "role": "Prosecutor",
+    "year": 2022,
+    "outcome": "Pending",
+    "description": "Case regarding property dispute.",
+    "court_name": "District Court",
+    "duration_months": 6
+}
+
+### Get Advocate's Cases
+GET http://localhost:3000/api/advocate/cases/df97409f-7339-4d37-a26c-5272b2092803
+
+
+### Update Advocate's Case
+PATCH http://localhost:3000/api/advocate/update-case/632f7cdc-12be-44f3-b6bb-95b28ac40214
+Content-Type: application/json
+Cookie: better-auth.session_token={{sessionToken}}
+
+{
+    "outcome": "Won",
+    "case_type": "Civil",
+    "role": "Prosecutor",
+    "year": 2022,
+    "description": "Case regarding property dispute.",
+    "court_name": "District Court",
+    "duration_months": 6
+}
+
+
+###
+GET http://localhost:3000/api/social/post/all
+
+
+###
+POST http://localhost:3000/api/social/post/create
+Content-Type: application/json
+# Cookie: better-auth.session_token={{sessionToken}}
+
+{
+  "image_url": "http://kldmlf",
+  "text": "This is the content of the new post."
+}
+
+###
+
+
+GET http://localhost:3000/api/social/post/my
+Cookie: better-auth.session_token={{sessionToken}}
+
+###
+GET http://localhost:3000/api/social/post/get/e1ce9cb5-3054-44a7-b6be-b0e937e0f2b6
+
+
+###
+POST http://localhost:3000/api/social/post/comment
+Content-Type: application/json
+Cookie: better-auth.session_token={{sessionToken}}
+
+{
+  "post_id": "e1ce9cb5-3054-44a7-b6be-b0e937e0f2b6",
+  "comment": "This is a comment on the post."
+}
+
+###
+POST http://localhost:3000/api/social/post/react
+Content-Type: application/json
+Cookie: better-auth.session_token={{sessionToken}}
+
+{
+  "post_id": "e1ce9cb5-3054-44a7-b6be-b0e937e0f2b6",
+  "type": "like"
+}
+
+###
+
+GET http://localhost:3000/api/social/post/e1ce9cb5-3054-44a7-b6be-b0e937e0f2b6/reactions
+Content-Type: application/json
+Cookie: better-auth.session_token={{sessionToken}}
+
+###
+POST http://localhost:3000/api/social/post/edit
+Content-Type: application/json
+Cookie: better-auth.session_token={{sessionToken}}
+
+{
+  "post_id": "e1ce9cb5-3054-44a7-b6be-b0e937e0f2b6",
+  "text": "This is the updated content of the post.",
+  "image_url": "http://updated-image-url.com"
+}
+
+###
+
+DELETE http://localhost:3000/api/social/post/12da34fc-1cda-4612-8944-17fefbb84b9d/
+Content-Type: application/json
+Cookie: better-auth.session_token={{sessionToken}}
+
+
