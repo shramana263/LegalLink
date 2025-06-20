@@ -13,6 +13,7 @@ import ratingRouter from "./routes/rating";
 import commonRouter from "./routes/common";
 import searchRouter from "./routes/search";
 import socialRouter from "./routes/social";
+import appointmentRouter from "./routes/appointment";
 
 export const app = express();
 
@@ -59,9 +60,10 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use("/api", commonRouter);
 app.use("/api/upload", uploadRouter);
+app.use("/api/appointment", appointmentRouter);
 app.use("/api/advocate", advocateRouter);
-app.use("/api", ratingRouter);
 app.use("/api/search", searchRouter);
 app.use("/api/social", socialRouter);
+app.use("/api", ratingRouter);
 
 app.use("/", index);

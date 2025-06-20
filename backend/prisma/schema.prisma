@@ -27,6 +27,7 @@ model User {
   advocate_reports advocate_reports[]
   post_reactions   post_reactions[]
   post_comments    post_comments[]
+  appointments     appointments[]
 
   @@map("user")
 }
@@ -91,6 +92,8 @@ model advocates {
   is_verified               Boolean  @default(false)
   verification_status       String   @default("pending") // e.g. "pending", "verified", "rejected", "suspended_by_reports"
   fee_structure             Json?
+  working_hours             Int[]    @default([10, 17]) // e.g. {"Monday": "9:00-17:00", "Tuesday": "9:00-17:00", ...}
+  working_days              String[] @default(["MON", "TUE", "WED", "THU", "FRI"]) // or nullable if not set
   userId                    String   @unique
   user                      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -99,6 +102,8 @@ model advocates {
   advocate_reports advocate_reports[]
   advocate_cases   advocate_cases[]
   advocate_posts   advocate_posts[]
+  calendar_tokens  calendar_tokens?
+  appointments     appointments[]
 }
 
 model advocate_specializations {
@@ -217,4 +222,30 @@ model post_comments {
   created_at DateTime       @default(now())
   post       advocate_posts @relation(fields: [post_id], references: [post_id], onDelete: Cascade)
   user       User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model calendar_tokens {
+  id          String   @id @default(uuid()) @db.Uuid
+  advocate_id String   @unique @db.Uuid
+  token       Json
+  created_at  DateTime @default(now())
+
+  advocate advocates @relation(fields: [advocate_id], references: [advocate_id])
+}
+
+model appointments {
+  id                String   @id @default(uuid()) @db.Uuid
+  advocate_id       String   @db.Uuid
+  client_id         String
+  appointment_time  DateTime
+  duration_mins     Int      @default(60)
+  reason            String
+  is_confirmed      Boolean  @default(false)
+  meeting_link      String? // Optional: Google Meet or Zoom link
+  status            String   @default("pending") // pending | confirmed | cancelled | completed
+  calendar_event_id String? // Google Calendar event ID for reference
+  created_at        DateTime @default(now())
+
+  advocate advocates @relation(fields: [advocate_id], references: [advocate_id])
+  client   User      @relation(fields: [client_id], references: [id])
 }
