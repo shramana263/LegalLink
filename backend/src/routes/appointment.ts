@@ -18,6 +18,8 @@ const router = express.Router();
  * @swagger
  * /api/appointment/advocate/calendar/connect:
  *   get:
+ *     security:
+ *       - cookieAuth: []
  *     summary: Api to get auth URL for Google Calendar
  *     tags:
  *       - Appointment
@@ -138,13 +140,50 @@ router.get("/advocate/availability/:advocate_id", async (req, res) => {
       workingDays,
     );
 
-    res.json({ slots });
+    res.json(slots);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to get availability" });
   }
 });
 
+/**
+ * @swagger
+ * /api/appointment/book:
+ *   post:
+ *     summary: Book an appointment slot with an advocate
+ *     tags:
+ *       - Appointment
+ *     parameters: []
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - startTime
+ *               - endTime
+ *               - reason
+ *               - advocate_id
+ *             properties:
+ *               startTime:
+ *                 type: string
+ *                 example: 2025-06-23T04:30:00.000Z
+ *               endTime:
+ *                 type: string
+ *                 example: 2025-06-23T04:30:00.000Z
+ *               reason:
+ *                 type: string
+ *                 example: Need legal advice on contract review
+ *               advocate_id:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Successful booking
+ */
 // POST /book → Client books a slot
 router.post("/book", getUser, async (req, res) => {
   const { advocate_id, startTime, endTime, reason } = req.body;
@@ -153,10 +192,21 @@ router.post("/book", getUser, async (req, res) => {
   try {
     const advocate = await prisma.advocates.findUnique({
       where: { advocate_id },
+      include: {
+        user: true,
+      },
     });
 
     if (!advocate) {
       return res.status(404).json({ error: "Advocate not found" });
+    }
+
+    const advocate_user_id = advocate.user.id;
+
+    if (advocate_user_id === client_id) {
+      return res
+        .status(400)
+        .json({ error: "You cannot book an appointment with yourself" });
     }
 
     const tokenData = await prisma.calendar_tokens.findUnique({
@@ -165,35 +215,72 @@ router.post("/book", getUser, async (req, res) => {
 
     const token = tokenData.token as { access_token: string };
 
-    const event = await createAppointmentEvent(token.access_token, {
-      summary: `Consultation with ${res.locals.user.name}`,
-      description: reason,
-      startTime,
-      endTime,
-      attendeeEmail: res.locals.user.email,
-    });
+    try {
+      const event = await createAppointmentEvent(token.access_token, {
+        summary: `Consultation with ${res.locals.user.name}`,
+        description: reason,
+        startTime,
+        endTime,
+        attendeeEmail: res.locals.user.email,
+      });
 
-    const appointment = await prisma.appointments.create({
-      data: {
-        advocate_id,
-        client_id,
-        appointment_time: new Date(startTime),
-        duration_mins: 30,
-        reason,
-        calendar_event_id: event.id,
-        meeting_link: event.hangoutLink || event.htmlLink,
-        is_confirmed: false,
-        status: "pending",
-      },
-    });
+      const appointment = await prisma.appointments.create({
+        data: {
+          advocate_id,
+          client_id,
+          appointment_time: new Date(startTime),
+          duration_mins: 30,
+          reason,
+          calendar_event_id: event.id,
+          meeting_link: event.hangoutLink || event.htmlLink,
+          is_confirmed: false,
+          status: "pending",
+        },
+      });
 
-    res.status(201).json({ success: true, appointment });
+      res.status(201).json({ success: true, appointment });
+    } catch (err) {
+      if (
+        err instanceof Error &&
+        err.message.includes("The selected time slot is not available.")
+      )
+        return res
+          .status(400)
+          .json({ error: "The selected time slot is not available." });
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Booking failed" });
   }
 });
 
+/**
+ * @swagger
+ * /api/appointment/cancel:
+ *   post:
+ *     security:
+ *       - cookieAuth: []
+ *     summary: cancel an appointment (by client or advocate)
+ *     description: Allows either the client or advocate to cancel an appointment.
+ *     tags:
+ *       - Appointment
+ *     parameters: []
+ *     requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *         schema:
+ *           type: object
+ *           required:
+ *            - appointment_id
+ *           properties:
+ *            appointment_id:
+ *              type: string
+ *
+ *     responses:
+ *       200:
+ *         description: Appointment cancelled successfully
+ */
 // POST /cancel → Cancel appointment (by client or advocate)
 router.post("/cancel", getUser, async (req, res) => {
   const { appointment_id } = req.body;
@@ -202,11 +289,23 @@ router.post("/cancel", getUser, async (req, res) => {
   try {
     const appointment = await prisma.appointments.findUnique({
       where: { id: appointment_id },
+      include: {
+        advocate: {
+          select: {
+            user: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (
       !appointment ||
-      (appointment.client_id !== user_id && appointment.advocate_id !== user_id)
+      (appointment.client_id !== user_id &&
+        appointment.advocate.user.id !== user_id)
     ) {
       return res.status(403).json({ error: "Not authorized" });
     }
@@ -223,6 +322,32 @@ router.post("/cancel", getUser, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/appointment/advocate/confirm:
+ *   post:
+ *     summary: Advocate confirms a pending appointment
+ *     tags:
+ *       - Appointment
+ *     parameters: []
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *         schema:
+ *           type: object
+ *           required:
+ *            - appointment_id
+ *           properties:
+ *            appointment_id:
+ *              type: string
+ *
+ *     responses:
+ *       200:
+ *         description: Appointment confirmed successfully
+ */
 // POST /advocate/confirm → Advocate confirms a pending appointment
 router.post(
   "/advocate/confirm",
@@ -235,10 +360,10 @@ router.post(
 
     try {
       const appointment = await prisma.appointments.findUnique({
-        where: { id: appointment_id },
+        where: { id: appointment_id, advocate_id: advocate_id },
       });
 
-      if (!appointment || appointment.advocate_id !== advocate_id) {
+      if (!appointment) {
         return res.status(403).json({ error: "Not authorized" });
       }
 
@@ -251,6 +376,55 @@ router.post(
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "Confirmation failed" });
+    }
+  },
+);
+
+/**
+ * @swagger
+ * /api/appointment/advocate/calendar:
+ *   get:
+ *     summary: Get all appointments for an advocate
+ *     tags:
+ *       - Appointment
+ *     parameters: []
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: list of appointments for the advocate
+ *         content:
+ *           application/json:
+ *            schema:
+ *              type: object
+ */
+router.get(
+  "/advocate/calendar",
+  getUser,
+  getAdvocate,
+  isAdvocateVerified,
+  async (req, res) => {
+    // fetch all the appointments for the advocate
+    const advocate_id = res.locals.advocate.advocate_id;
+    try {
+      const appointments = await prisma.appointments.findMany({
+        where: { advocate_id },
+        include: {
+          client: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: { appointment_time: "asc" },
+      });
+
+      res.json({ success: true, appointments });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Failed to fetch appointments" });
     }
   },
 );

@@ -71,6 +71,26 @@ export async function createAppointmentEvent(
   const oauth2Client = new google.auth.OAuth2();
   oauth2Client.setCredentials({ access_token });
 
+  const availability = await getNextAvailableSlots(
+    access_token,
+    { startHour: 10, endHour: 17 },
+    ["MON", "TUE", "WED", "THU", "FRI"],
+  );
+
+  if (!availability || availability.length === 0) {
+    throw new Error("The selected time slot is not available.");
+  }
+
+  const isSlotAvailable = availability.some(
+    slot =>
+      new Date(slot.start).toISOString() === startTime &&
+      new Date(slot.end).toISOString() === endTime,
+  );
+
+  if (!isSlotAvailable) {
+    throw new Error("The selected time slot is not available.");
+  }
+
   const calendar = google.calendar({ version: "v3", auth: oauth2Client });
 
   const response = await calendar.events.insert({
