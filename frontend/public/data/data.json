@@ -1,0 +1,159 @@
+{
+  "users": [
+    {
+      "id": "user1",
+      "name": "Rahul Sharma",
+      "email": "rahul.sharma@email.com",
+      "avatar": "/placeholder.svg?height=100&width=100",
+      "location": "Mumbai, Maharashtra",
+      "bio": "Software Engineer seeking legal guidance",
+      "type": "user",
+      "connections": ["advocate1", "advocate2"]
+    },
+    {
+      "id": "user2",
+      "name": "Priya Patel",
+      "email": "priya.patel@email.com",
+      "avatar": "/placeholder.svg?height=100&width=100",
+      "location": "Delhi, India",
+      "bio": "Small business owner",
+      "type": "user",
+      "connections": ["advocate1"]
+    }
+  ],
+  "advocates": [
+    {
+      "id": "advocate1",
+      "name": "Adv. Vikram Singh",
+      "email": "vikram.singh@lawfirm.com",
+      "avatar": "/placeholder.svg?height=100&width=100",
+      "location": "Mumbai, Maharashtra",
+      "bio": "Senior Advocate specializing in Corporate Law",
+      "type": "advocate",
+      "barCouncilId": "MH/2015/12345",
+      "specializations": ["Corporate Law", "Contract Disputes", "Mergers & Acquisitions"],
+      "experience": 8,
+      "rating": 4.8,
+      "casesHandled": 150,
+      "consultationFee": 2000,
+      "verified": true,
+      "languages": ["English", "Hindi", "Marathi"]
+    },
+    {
+      "id": "advocate2",
+      "name": "Adv. Meera Krishnan",
+      "email": "meera.krishnan@legalaid.com",
+      "avatar": "/placeholder.svg?height=100&width=100",
+      "location": "Chennai, Tamil Nadu",
+      "bio": "Family Law Expert with 12+ years experience",
+      "type": "advocate",
+      "barCouncilId": "TN/2011/67890",
+      "specializations": ["Family Law", "Divorce Proceedings", "Child Custody"],
+      "experience": 12,
+      "rating": 4.9,
+      "casesHandled": 200,
+      "consultationFee": 1500,
+      "verified": true,
+      "languages": ["English", "Tamil", "Hindi"]
+    },
+    {
+      "id": "advocate3",
+      "name": "Adv. Rajesh Kumar",
+      "email": "rajesh.kumar@criminallaw.com",
+      "avatar": "/placeholder.svg?height=100&width=100",
+      "location": "Delhi, India",
+      "bio": "Criminal Law Specialist",
+      "type": "advocate",
+      "barCouncilId": "DL/2018/11111",
+      "specializations": ["Criminal Law", "Bail Applications", "Court Proceedings"],
+      "experience": 6,
+      "rating": 4.6,
+      "casesHandled": 120,
+      "consultationFee": 1800,
+      "verified": true,
+      "languages": ["English", "Hindi"]
+    }
+  ],
+  "posts": [
+    {
+      "id": "post1",
+      "authorId": "advocate1",
+      "content": "Understanding the new amendments in the Companies Act 2013. Key changes every business owner should know about compliance requirements.",
+      "timestamp": "2024-01-15T10:30:00Z",
+      "likes": 45,
+      "comments": [
+        {
+          "id": "comment1",
+          "authorId": "user1",
+          "content": "Very informative post! Could you elaborate on the compliance timeline?",
+          "timestamp": "2024-01-15T11:00:00Z"
+        }
+      ],
+      "tags": ["Corporate Law", "Compliance", "Companies Act"]
+    },
+    {
+      "id": "post2",
+      "authorId": "advocate2",
+      "content": "Recent Supreme Court judgment on child custody cases brings significant changes to family law proceedings. Here's what parents need to know.",
+      "timestamp": "2024-01-14T14:20:00Z",
+      "likes": 67,
+      "comments": [
+        {
+          "id": "comment2",
+          "authorId": "user2",
+          "content": "Thank you for sharing this important update.",
+          "timestamp": "2024-01-14T15:00:00Z"
+        }
+      ],
+      "tags": ["Family Law", "Child Custody", "Supreme Court"]
+    }
+  ],
+  "newsThread": [
+    {
+      "id": "news1",
+      "title": "State vs. ABC Corporation - Environmental Violation Case",
+      "hearings": [
+        {
+          "id": "hearing1",
+          "date": "2024-02-15",
+          "time": "10:00 AM",
+          "court": "Delhi High Court",
+          "status": "Scheduled",
+          "description": "Initial hearing for environmental compliance violation"
+        },
+        {
+          "id": "hearing2",
+          "date": "2024-01-20",
+          "time": "2:30 PM",
+          "court": "Delhi High Court",
+          "status": "Completed",
+          "description": "Case filing and preliminary arguments"
+        }
+      ]
+    },
+    {
+      "id": "news2",
+      "title": "Public Interest Litigation - Right to Education",
+      "hearings": [
+        {
+          "id": "hearing3",
+          "date": "2024-02-10",
+          "time": "11:30 AM",
+          "court": "Supreme Court of India",
+          "status": "Scheduled",
+          "description": "Final arguments on education accessibility"
+        }
+      ]
+    }
+  ],
+  "connectionRequests": [
+    {
+      "id": "req1",
+      "fromUserId": "user1",
+      "toAdvocateId": "advocate1",
+      "message": "Hi, I need legal advice regarding a contract dispute with my employer. Would appreciate your guidance.",
+      "status": "pending",
+      "timestamp": "2024-01-16T09:00:00Z"
+    }
+  ]
+}
