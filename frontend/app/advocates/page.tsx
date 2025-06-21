@@ -133,11 +133,9 @@ export default function AdvocatesPage() {
 
   // Initial fetch and on filter/search change
   useEffect(() => {
-    const urlSearch = searchParams?.get("search");
-    if (urlSearch) setSearchQuery(urlSearch);
     // Build filters for API
     const filters: any = {};
-    if (searchQuery) filters.specialization = searchQuery;
+    if (searchQuery) filters.name = searchQuery;
     if (selectedSpecialization !== "all")
       filters.specialization = selectedSpecialization;
     if (selectedLocation !== "all") filters.location_city = selectedLocation;
@@ -148,6 +146,45 @@ export default function AdvocatesPage() {
     if (sortBy) filters.sort_by = sortBy;
     if (sortOrder) filters.sort_order = sortOrder;
     fetchAdvocates(filters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    searchQuery,
+    selectedSpecialization,
+    selectedLocation,
+    minRating,
+    maxFee,
+    feeType,
+    experienceLevel,
+    sortBy,
+    sortOrder,
+    searchParams,
+  ]);
+
+  // Debounced search for advocates (improved: only triggers after user stops typing for 1000ms)
+  useEffect(() => {
+    if (searchQuery.length === 0) {
+      fetchAdvocates({});
+      return;
+    }
+    if (searchQuery.length < 2) return; // Don't search for single letters
+    const handler = setTimeout(() => {
+      const urlSearch = searchParams?.get("search");
+      if (urlSearch) setSearchQuery(urlSearch);
+      // Build filters for API
+      const filters: any = {};
+      if (searchQuery) filters.name = searchQuery;
+      if (selectedSpecialization !== "all")
+        filters.specialization = selectedSpecialization;
+      if (selectedLocation !== "all") filters.location_city = selectedLocation;
+      if (minRating > 0) filters.min_rating = minRating;
+      if (maxFee > 0) filters.max_fee = maxFee;
+      if (feeType) filters.fee_type = feeType;
+      if (experienceLevel !== "all") filters.experience_level = experienceLevel;
+      if (sortBy) filters.sort_by = sortBy;
+      if (sortOrder) filters.sort_order = sortOrder;
+      fetchAdvocates(filters);
+    }, 1000); // 1000ms debounce for longer pause
+    return () => clearTimeout(handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     searchQuery,

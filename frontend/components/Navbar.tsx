@@ -2,12 +2,11 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Search, Home, Bell, MessageCircle, PlusCircle, Moon, Sun, User, LogOut, Scale, Menu, X } from "lucide-react"
+import { Bell, MessageCircle, PlusCircle, Moon, Sun, User, LogOut, Scale, Menu, X, Home } from "lucide-react"
 import { Button } from "./ui/button"
-import { Input } from "./ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import {
   DropdownMenu,
@@ -21,26 +20,44 @@ import { useAuth } from "@/contexts/AuthContext"
 import { Badge } from "./ui/badge"
 import CreatePostSection from "./CreatePostSection"
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog"
+import { API } from "@/lib/api"
 
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [suggestions, setSuggestions] = useState<any[]>([])
   const { theme, setTheme } = useTheme()
   const { user, logout } = useAuth()
   const router = useRouter()
   const [createPostOpen, setCreatePostOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (searchQuery.trim()) {
-      router.push(`/advocates?search=${encodeURIComponent(searchQuery)}`)
-    }
-  }
-
   const handleLogout = () => {
     logout()
     router.push("/")
   }
+
+  // Debounced advocate suggestions for navbar search
+  useEffect(() => {
+    if (searchQuery.length < 2) {
+      setSuggestions([])
+      return
+    }
+    const handler = setTimeout(async () => {
+      try {
+        const res = await API.Advocate.searchAdvocates({ location_city: searchQuery })
+        console.log('API result for suggestions:', res.data); // Debug log
+        setSuggestions(
+          Array.isArray(res.data)
+            ? res.data.map((a: any) => ({ name: a.name || a.user?.name, id: a.advocate_id }))
+            : []
+        )
+      } catch (err) {
+        console.error('API error for suggestions:', err);
+        setSuggestions([])
+      }
+    }, 500)
+    return () => clearTimeout(handler)
+  }, [searchQuery])
 
   if (!user) return null
 
@@ -59,126 +76,104 @@ export default function Navbar() {
           </Link>
 
           {/* Hamburger for mobile */}
-          <button
-            className="lg:hidden p-2 rounded-md border text-sm font-medium flex items-center gap-2"
-            onClick={() => setMobileMenuOpen((v) => !v)}
-            aria-label="Open navigation menu"
-          >
-            <span className="sr-only">Open navigation menu</span>
-            <Menu className="h-6 w-6" />
-          </button>
 
-          {/* Desktop: Search Bar & Nav Items */}
-          <div className="hidden lg:flex flex-1 items-center justify-between">
-            <form onSubmit={handleSearch} className="flex-1 max-w-md mx-8">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  type="text"
-                  placeholder="Search advocates..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4"
-                />
-              </div>
-            </form>
+          {/* Desktop: Nav Items at the end */}
+          <div className="hidden lg:flex items-center space-x-4 ml-auto">
             {/* Navigation Items */}
-            <div className="flex items-center space-x-4">
-              <Link href="/feed">
-                <Button variant="ghost" size="sm" className="flex items-center space-x-1">
-                  <Home className="h-5 w-5" />
-                  <span className="hidden sm:inline">Home</span>
-                </Button>
-              </Link>
-
-              {/* <Link href="/notifications">
-                <Button variant="ghost" size="sm" className="flex items-center space-x-1 relative">
-                  <Bell className="h-5 w-5" />
-                  <span className="hidden sm:inline">Notifications</span>
-                  <Badge
-                    variant="destructive"
-                    className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs"
-                  >
-                    3
-                  </Badge>
-                </Button>
-              </Link>
-
-              <Link href="/messages">
-                <Button variant="ghost" size="sm" className="flex items-center space-x-1 relative">
-                  <MessageCircle className="h-5 w-5" />
-                  <span className="hidden sm:inline">Messages</span>
-                  <Badge
-                    variant="destructive"
-                    className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs"
-                  >
-                    2
-                  </Badge>
-                </Button>
-              </Link> */}
-
-              {user.userType == "advocate" && (
-                <>
-                  <Dialog open={createPostOpen} onOpenChange={setCreatePostOpen}>
-                    <DialogTrigger asChild>
-                      <Button size="sm" className="flex items-center space-x-1">
-                        <PlusCircle className="h-4 w-4" />
-                        <span className="hidden sm:inline">Create Post</span>
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl form-modal-bg">
-                      <DialogHeader>
-                        <DialogTitle>Create a Post</DialogTitle>
-                      </DialogHeader>
-                      <CreatePostSection forceExpanded onPostCreated={() => setCreatePostOpen(false)} />
-                      {/* <CreatePostSection/> */}
-                    </DialogContent>
-                  </Dialog>
-                </>
-              )}
-
-              {/* Theme Toggle */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-                title={`Switch theme (current: ${theme})`}
-              >
-                {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+            <Link href="/feed">
+              <Button variant="ghost" size="sm" className="flex items-center space-x-1">
+                <Home className="h-5 w-5" />
+                <span className="hidden sm:inline">Home</span>
               </Button>
+            </Link>
 
-              {/* Profile Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={(user as any).image || "/placeholder.svg"} alt={user.name} />
-                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <div className="flex items-center justify-start gap-2 p-2">
-                    <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-medium">{user.name}</p>
-                      <p className="w-[200px] truncate text-sm text-muted-foreground">{user.email}</p>
-                    </div>
+            {/* <Link href="/notifications">
+              <Button variant="ghost" size="sm" className="flex items-center space-x-1 relative">
+                <Bell className="h-5 w-5" />
+                <span className="hidden sm:inline">Notifications</span>
+                <Badge
+                  variant="destructive"
+                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs"
+                >
+                  3
+                </Badge>
+              </Button>
+            </Link>
+
+            <Link href="/messages">
+              <Button variant="ghost" size="sm" className="flex items-center space-x-1 relative">
+                <MessageCircle className="h-5 w-5" />
+                <span className="hidden sm:inline">Messages</span>
+                <Badge
+                  variant="destructive"
+                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs"
+                >
+                  2
+                </Badge>
+              </Button>
+            </Link> */}
+
+            {user.userType == "advocate" && (
+              <>
+                <Dialog open={createPostOpen} onOpenChange={setCreatePostOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="flex items-center space-x-1">
+                      <PlusCircle className="h-4 w-4" />
+                      <span className="hidden sm:inline">Create Post</span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl form-modal-bg">
+                    <DialogHeader>
+                      <DialogTitle>Create a Post</DialogTitle>
+                    </DialogHeader>
+                    <CreatePostSection forceExpanded onPostCreated={() => setCreatePostOpen(false)} />
+                    {/* <CreatePostSection/> */}
+                  </DialogContent>
+                </Dialog>
+              </>
+            )}
+
+            {/* Theme Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+              title={`Switch theme (current: ${theme})`}
+            >
+              {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+            </Button>
+
+            {/* Profile Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={(user as any).image || "/placeholder.svg"} alt={user.name} />
+                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <div className="flex items-center justify-start gap-2 p-2">
+                  <div className="flex flex-col space-y-1 leading-none">
+                    <p className="font-medium">{user.name}</p>
+                    <p className="w-[200px] truncate text-sm text-muted-foreground">{user.email}</p>
                   </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href={`/profile/${user.id}`} className="flex items-center">
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Profile</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href={`/profile/${user.id}`} className="flex items-center">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>

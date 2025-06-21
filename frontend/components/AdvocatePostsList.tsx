@@ -17,6 +17,8 @@ import {
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import ReactionPopover from "./ReactionPopover";
+import PostComments from "./PostComments";
 
 export default function AdvocatePostsList({ limit }: { limit?: number }) {
   const [posts, setPosts] = useState<any[]>([]);
@@ -29,38 +31,60 @@ export default function AdvocatePostsList({ limit }: { limit?: number }) {
   const [deletingPost, setDeletingPost] = useState<any | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [openComments, setOpenComments] = useState<Record<string, boolean>>({});
+  const [showReactionsFor, setShowReactionsFor] = useState<string | null>(null);
+  const [postReactions, setPostReactions] = useState<Record<string, string>>({});
+  const [reacting, setReacting] = useState<string | null>(null);
+  const [reactionsCount, setReactionsCount] = useState<Record<string, any>>({});
+  const [commentsCount, setCommentsCount] = useState<Record<string, number>>({});
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // First get advocate data to get the advocate_id
+        // Get advocate data to get the advocate_id (user id)
         const advData = (await API.Advocate.getAdvocateData()).data;
-
         if (!advData || !advData.advocate_id) {
           return setError("Advocate data not found.");
         }
-
-        // Get profile data for image and name
-        const profileData = (await API.Auth.getProfile()).data;
-
+        const advocateId = advData.advocate_id;
         // Get posts using the advocate_id
-        const response = await API.Social.getMyPosts(
-          advData.advocate_id as string
-        );
-        // Add profile data to each post
-        const postsWithProfile = (response.data || []).map((post: any) => ({
-          ...post,
-          advocate: {
-            ...post.advocate,
-            user: {
-              ...post.advocate?.user,
-              name: profileData.name,
-              image: profileData.image,
-            },
-          },
-        }));
-
-        setPosts(postsWithProfile);
+        const response = await API.Social.getMyPosts(advocateId as string);
+        const postsData = response.data || [];
+        setPosts(postsData);
         setError(null);
+
+        // For each post, fetch comments count, reactions count, and user reaction
+        const commentsCountObj: Record<string, number> = {};
+        const reactionsCountObj: Record<string, any> = {};
+        const postReactionsObj: Record<string, string> = {};
+        await Promise.all(
+          postsData.map(async (post: any) => {
+            // Fetch comments count
+            try {
+              const commentsRes = await API.Social.getComments(post.id);
+              commentsCountObj[post.id] = Array.isArray(commentsRes.data) ? commentsRes.data.length : 0;
+            } catch {
+              commentsCountObj[post.id] = 0;
+            }
+            // Fetch reactions count
+            try {
+              const reactionsRes = await API.Social.getReactionsCountByType(post.id);
+              reactionsCountObj[post.id] = reactionsRes.data || {};
+            } catch {
+              reactionsCountObj[post.id] = {};
+            }
+            // Fetch user's reaction
+            try {
+              const userReactionRes = await API.Social.getMyReaction(post.id);
+              postReactionsObj[post.id] = userReactionRes.data?.type || "";
+            } catch {
+              postReactionsObj[post.id] = "";
+            }
+          })
+        );
+        setReactionsCount(reactionsCountObj);
+        setPostReactions(postReactionsObj);
+        setCommentsCount(commentsCountObj);
       } catch (error: any) {
         if (error?.response?.status === 403) {
           setError("You must be a verified advocate to view or create posts.");
@@ -140,6 +164,30 @@ export default function AdvocatePostsList({ limit }: { limit?: number }) {
     } finally {
       setDeleteLoading(false);
     }
+  };
+
+  const handleReact = async (postId: string, type: string) => {
+    setReacting(postId + type);
+    try {
+      await API.Social.reactToPost({ post_id: String(postId), type: String(type) });
+      setPostReactions((prev) => ({ ...prev, [postId]: type }));
+      toast({ title: `You reacted: ${type}` });
+      // Refresh reaction counts after reacting
+      const res = await API.Social.getReactionsCountByType(postId);
+      setReactionsCount((prev) => ({ ...prev, [postId]: res.data }));
+    } catch (err) {
+      toast({ title: "Failed to react", variant: "destructive" });
+    } finally {
+      setReacting(null);
+    }
+  };
+
+  const handleShowReactions = async (postId: string) => {
+    try {
+      const res = await API.Social.getReactionsCountByType(postId);
+      setReactionsCount((prev) => ({ ...prev, [postId]: res.data }));
+      setShowReactionsFor(postId);
+    } catch {}
   };
 
   if (isLoading) {
@@ -269,33 +317,68 @@ export default function AdvocatePostsList({ limit }: { limit?: number }) {
               </div>
             )}
             <div className="flex items-center justify-between pt-3 border-t border-border">
-              <div className="flex items-center space-x-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground hover:text-blue-600"
+              <div className="flex items-center space-x-2">
+                <ReactionPopover
+                  selected={postReactions[post.id]}
+                  onReact={async (type) => await handleReact(post.id, type)}
+                  loading={reacting?.startsWith(post.id)}
+                />
+                <span
+                  className="ml-2 text-xs text-muted-foreground cursor-pointer underline"
+                  onClick={() => handleShowReactions(post.id)}
                 >
-                  <ThumbsUp className="h-4 w-4 mr-2" />
-                  <span className="text-xs">{post._count?.reactions || 0}</span>
-                </Button>
+                  {/* Calculate total reactions safely and render as string */}
+                  {(() => {
+                    const totalReactions = Object.values(reactionsCount[post.id] || {}).reduce(
+                      (a: number, b) => a + Number(b),
+                      0
+                    );
+                    return <span>{totalReactions} reactions</span>;
+                  })()}
+                </span>
+                <Dialog open={showReactionsFor === post.id} onOpenChange={() => setShowReactionsFor(null)}>
+                  <DialogContent className="form-modal-bg">
+                    <DialogHeader>
+                      <DialogTitle>Reactions</DialogTitle>
+                    </DialogHeader>
+                    <div className="flex gap-4 flex-wrap pt-2">
+                      {Object.entries(reactionsCount[post.id] || {}).map(([type, count]) => (
+                        <span key={type} className="flex items-center gap-1 text-base">
+                          {type}
+                          <span>{String(count)}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              <div className="flex items-center space-x-2">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-muted-foreground hover:text-green-600"
+                  className={"text-muted-foreground hover:text-green-600" + (openComments[post.id] ? " font-bold" : "")}
+                  onClick={() => setOpenComments((prev) => ({ ...prev, [post.id]: !prev[post.id] }))}
                 >
                   <MessageCircle className="h-4 w-4 mr-2" />
-                  <span className="text-xs">{post._count?.comments || 0}</span>
+                  <span className="text-xs">{commentsCount[post.id] ?? post._count?.comments ?? 0}</span>
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
                   className="text-muted-foreground hover:text-purple-600"
+                  onClick={async () => {
+                    const url = `${window.location.origin}/post/${post.id}`;
+                    await navigator.clipboard.writeText(url);
+                    toast({ title: "Post link copied!", description: url });
+                  }}
                 >
                   <Share className="h-4 w-4 mr-2" />
                   <span className="text-xs">Share</span>
                 </Button>
               </div>
             </div>
+            {/* Render comments section if open */}
+            {openComments[post.id] && <PostComments postId={post.id} />}
           </CardContent>
         </Card>
       ))}
