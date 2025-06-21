@@ -76,15 +76,27 @@ export default function AdvocateAppointmentsList({
   );
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [hasShownVerificationError, setHasShownVerificationError] =
+    useState(false);
 
   const router = useRouter();
   const { toast } = useToast();
   useEffect(() => {
+    // Use a reference to track if the effect is already running
+    let isMounted = true;
+
     const fetchAppointments = async () => {
+      // Only proceed if component is still mounted
+      if (!isMounted) return;
+
       setIsLoading(true);
       try {
         const response =
           await API.Appointment.getAdvocateCalendarAppointments();
+
+        // Only update state if component is still mounted
+        if (!isMounted) return;
+
         // Log the response to debug
         console.log("Appointments API response:", response);
 
@@ -109,29 +121,46 @@ export default function AdvocateAppointmentsList({
         setError(null);
 
         // Notify parent component that calendar is connected
-        if (onCalendarConnected) {
+        if (onCalendarConnected && isMounted) {
           onCalendarConnected(true);
         }
       } catch (err: any) {
+        // Only update state if component is still mounted
+        if (!isMounted) return;
+
         console.error("Failed to fetch appointments:", err);
         setError(err?.response?.data?.message || "Failed to load appointments");
-        toast({
-          title: "Not Verified or Not Connected To Calendar",
-          description: "Could not load your appointments. Please Get Verified.",
-          variant: "default",
-        });
+
+        // Only show verification error toast once
+        if (!hasShownVerificationError && isMounted) {
+          toast({
+            title: "Not Verified or Not Connected To Calendar",
+            description:
+              "Could not load your appointments. Please Get Verified.",
+            variant: "default",
+          });
+          setHasShownVerificationError(true);
+        }
 
         // Notify parent component that calendar is not connected
-        if (onCalendarConnected) {
+        if (onCalendarConnected && isMounted) {
           onCalendarConnected(false);
         }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
+    // Call fetchAppointments only once when the component mounts
     fetchAppointments();
-  }, [toast, onCalendarConnected]);
+
+    // Cleanup function to prevent state updates after unmount
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Function to get status badge
   const getStatusBadge = (status: string) => {
@@ -397,7 +426,6 @@ export default function AdvocateAppointmentsList({
                     </div>
 
                     <div className="flex flex-col gap-2">
-
                       {status === "pending" && canTakeAction && (
                         <Button
                           variant="outline"
