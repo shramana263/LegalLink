@@ -11,6 +11,9 @@ import {
   User,
   MicIcon,
   ArrowLeft,
+  Wifi,
+  WifiOff,
+  AlertCircle,
 } from "lucide-react";
 
 import {
@@ -24,31 +27,37 @@ import {
 import { Button } from "./ui/button";
 import { atom, useAtom, useSetAtom } from "jotai";
 import { cn } from "@/lib/utils";
+import { useTheme } from "./theme-provider";
+import { useWebSocket } from "@/hooks/useWebSocket";
+import { useAuth } from "@/contexts/AuthContext";
 
 const chatPortAtom = atom(false);
-const messagesAtom = atom<
-  {
-    id: string | number;
-    type: "user" | "assistant";
-    content: string;
-    timestamp: number;
-  }[]
->([]);
 const isTypingAtom = atom(false);
 
 const AiTextBox = ({
-  handleSubmit,
+  onSendMessage,
+  disabled = false,
 }: {
-  handleSubmit: React.MouseEventHandler<HTMLButtonElement>;
+  onSendMessage: (message: string) => void;
+  disabled?: boolean;
 }) => {
   const [inputValue, setInputValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const {theme,setTheme} = useTheme()
+  useEffect(()=>{
+    setTheme("dark")
+  },[theme])
+
+  const handleSubmit = () => {
+    if (!inputValue.trim() || disabled) return;
+    onSendMessage(inputValue.trim());
+    setInputValue("");
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      //@ts-ignore
-      handleSubmit(e);
+      handleSubmit();
     }
   };
 
@@ -75,6 +84,7 @@ const AiTextBox = ({
         className="w-full px-6 py-4 bg-transparent text-white placeholder-gray-400 resize-none focus:outline-none text-lg"
         rows={1}
         style={{ minHeight: "60px" }}
+        disabled={disabled}
       />
 
       {/* Bottom Bar */}
@@ -85,7 +95,7 @@ const AiTextBox = ({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={!inputValue.trim()}
+            disabled={!inputValue.trim() || disabled}
             className="w-8 h-8 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-lg flex items-center justify-center transition-colors"
           >
             <ArrowUp className="w-4 h-4 text-white" />
@@ -100,12 +110,21 @@ const MessageBubble = ({
   type,
   content,
   timestamp,
+  quickActions,
 }: {
-  type: "user" | "assistant";
+  type: "user" | "assistant" | "system" | "error";
   content: string;
   timestamp: number;
+  quickActions?: Array<{
+    id: string;
+    title: string;
+    description: string;
+  }>;
 }) => {
   const isUser = type === "user";
+  const isSystem = type === "system";
+  const isError = type === "error";
+  
   return (
     <div
       className={`flex ${
@@ -114,11 +133,30 @@ const MessageBubble = ({
     >
       <div
         className={`max-w-xs px-4 py-2 rounded-lg text-sm ${
-          isUser ? "bg-blue-500 text-white" : "bg-gray-700 text-gray-200"
+          isUser 
+            ? "bg-blue-500 text-white" 
+            : isSystem 
+            ? "bg-green-600 text-white"
+            : isError
+            ? "bg-red-600 text-white"
+            : "bg-gray-700 text-gray-200"
         }`}
       >
         {content}
-        <div className="text-xs mt-1">
+        {quickActions && quickActions.length > 0 && (
+          <div className="mt-2 space-y-1">
+            {quickActions.map((action) => (
+              <button
+                key={action.id}
+                className="block w-full text-left px-2 py-1 text-xs bg-white/20 hover:bg-white/30 rounded transition-colors"
+              >
+                <div className="font-medium">{action.title}</div>
+                <div className="text-xs opacity-80">{action.description}</div>
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="text-xs mt-1 opacity-70">
           {new Date(timestamp).toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
@@ -130,8 +168,8 @@ const MessageBubble = ({
 };
 
 const ChatBoxPortal = () => {
-  const [messages, setMessages] = useAtom(messagesAtom);
-  const isTyping = useSetAtom(isTypingAtom);
+  const { user } = useAuth();
+  const { messages, isConnected, isConnecting, sendMessage, connectionError, reconnect } = useWebSocket(user?.id);
   const [portal, setPortal] = useAtom(chatPortAtom);
   const chatAreaRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
@@ -168,9 +206,48 @@ const ChatBoxPortal = () => {
               <div className="transition-all block animate-in fade-in-50 slide-in-from-bottom-4 duration-300">
                 LegalLink Chat
               </div>
+              {/* Connection Status */}
+              <div className="ml-auto flex items-center gap-2">
+                {isConnecting ? (
+                  <div className="flex items-center gap-1 text-yellow-400">
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-yellow-400"></div>
+                    <span className="text-xs">Connecting...</span>
+                  </div>
+                ) : isConnected ? (
+                  <div className="flex items-center gap-1 text-green-400">
+                    <Wifi className="w-3 h-3" />
+                    <span className="text-xs">Connected</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1 text-red-400">
+                    <WifiOff className="w-3 h-3" />
+                    <span className="text-xs">Disconnected</span>
+                  </div>
+                )}
+              </div>
             </div>
           </DialogTitle>
         </DialogHeader>
+          {/* Connection Error */}
+        {connectionError && (
+          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-4">
+            <div className="flex items-center justify-between gap-2 text-red-400">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4" />
+                <span className="text-sm">{connectionError}</span>
+              </div>
+              {!isConnecting && (
+                <button
+                  onClick={reconnect}
+                  className="px-3 py-1 text-xs bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
+                >
+                  Retry
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+        
         <div className="flex flex-col space-y-4 min-h-full h-[calc(100vh-100px)]">
           <div
             className="grow block overflow-y-auto custom-scrollbar-dark"
@@ -179,7 +256,6 @@ const ChatBoxPortal = () => {
             {messages.map((message, index) => (
               <MessageBubble {...message} key={index} />
             ))}
-            {/* Add more messages here */}
             <div ref={lastMessageRef} />
           </div>
           <div
@@ -188,17 +264,8 @@ const ChatBoxPortal = () => {
             )}
           >
             <AiTextBox
-              handleSubmit={(e) => {
-                setMessages((prev) => [
-                  ...prev,
-                  {
-                    id: Date.now(),
-                    type: Math.random() > 0.5 ? "user" : "assistant",
-                    content: (e.target as HTMLTextAreaElement).value,
-                    timestamp: Date.now(),
-                  },
-                ]);
-              }}
+              onSendMessage={sendMessage}
+              disabled={!isConnected}
             />
           </div>
         </div>
@@ -208,8 +275,9 @@ const ChatBoxPortal = () => {
 };
 
 export const ChatBox = () => {
-  const [should_move, setShouldMove] = useState(false);
-  const [portal, setPortal] = useAtom(chatPortAtom);
+  const [should_move, setShouldMove] = useState(false);  const [portal, setPortal] = useAtom(chatPortAtom);
+  const { user } = useAuth();
+  const { sendMessage, isConnected, connectionError, reconnect } = useWebSocket(user?.id);
 
   const quickActions = [
     { icon: GraduationCap, label: "Civil Laws", color: "text-gray-400" },
@@ -218,6 +286,19 @@ export const ChatBox = () => {
     { icon: Lightbulb, label: "General Queries", color: "text-gray-400" },
     { icon: Code, label: "Others", color: "text-gray-400" },
   ];
+
+  const handleQuickAction = (label: string) => {
+    const message = `I need help with ${label.toLowerCase()}`;
+    sendMessage(message);
+    setShouldMove(true);
+  };
+
+  const handleInitialMessage = (message: string) => {
+    if (message.trim()) {
+      sendMessage(message);
+    }
+    setShouldMove(true);
+  };
 
   useEffect(() => {
     if (should_move) {
@@ -238,7 +319,6 @@ export const ChatBox = () => {
     <div className="flex flex-col">
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-4">
-        {/* {messages.length === 0 ? ( */}
         <div className="max-w-4xl w-full flex flex-col gap-8">
           {/* Welcome Message */}
           <div
@@ -262,8 +342,24 @@ export const ChatBox = () => {
               <h1 className="text-4xl font-normal text-gray-200">
                 Hello folks, Welcome to LegalLink
               </h1>
+            </div>          </div>
+
+          {/* Connection Status */}
+          {connectionError && (
+            <div
+              className={cn(
+                "transition-all duration-500",
+                should_move && "translate-y-1/2 opacity-0"
+              )}
+            >
+              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-center">
+                <div className="flex items-center justify-center gap-2 text-red-400">
+                  <AlertCircle className="w-5 h-5" />
+                  <span className="text-sm font-medium">{connectionError}</span>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Input Container */}
           <div
@@ -273,9 +369,8 @@ export const ChatBox = () => {
             )}
           >
             <AiTextBox
-              handleSubmit={() => {
-                setShouldMove(true);
-              }}
+              onSendMessage={handleInitialMessage}
+              disabled={!isConnected}
             />
           </div>
 
@@ -289,6 +384,7 @@ export const ChatBox = () => {
             {quickActions.map((action, index) => (
               <button
                 key={index}
+                onClick={() => handleQuickAction(action.label)}
                 className="flex items-center space-x-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-full border border-gray-700 transition-colors"
               >
                 <action.icon className={`w-4 h-4 ${action.color}`} />

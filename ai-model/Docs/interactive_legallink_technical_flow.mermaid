@@ -1,0 +1,207 @@
+graph TB
+    %% Session & Context Management
+    subgraph "🔐 Session Management Layer"
+        WebSocket[🔌 WebSocket Connection<br/>Real-time Communication]
+        SessionDB[(💾 Session Database<br/>Redis/MongoDB<br/>- User Sessions<br/>- Conversation History<br/>- Context State)]
+        AuthService[🔐 Authentication Service<br/>JWT Token Management]
+    end
+    
+    %% Input Processing Pipeline
+    subgraph "📥 Enhanced Input Processing"
+        UserInput[👤 User Input<br/>Text/Voice/Upload]
+        InputValidator[✅ Input Validator<br/>Sanitization & Validation]
+        ContextLoader[📝 Context Loader<br/>Load Previous Conversation]
+        IntentClassifier[🎯 Intent Classifier<br/>- New Query<br/>- Follow-up<br/>- Clarification<br/>- Feedback]
+    end
+    
+    %% NLP & Understanding
+    subgraph "🧠 NLP Processing Engine"
+        MultilingualNLP[🌐 Multilingual NLP<br/>Hindi/English/Bengali<br/>Gemma2 1B + Custom Fine-tuning]
+        EntityExtractor[🏷️ Enhanced Entity Extraction<br/>- Legal Entities<br/>- Temporal References<br/>- Contextual Entities]
+        ConversationNLU[💬 Conversation NLU<br/>- Coreference Resolution<br/>- Context Linking<br/>- Intent Progression]
+    end
+    
+    %% Conversation State Management
+    subgraph "🗃️ Conversation State Management"
+        StateManager[🎭 State Manager<br/>Current Conversation State]
+        TopicTracker[📊 Topic Tracker<br/>Legal Domain Progression]
+        ProgressTracker[📈 Progress Tracker<br/>User Journey Mapping]
+        MemoryManager[🧠 Memory Manager<br/>Short/Long-term Context]
+    end
+    
+    %% Agentic Conversation System
+    subgraph "🤖 Agentic Conversation System (LangGraph)"
+        ConversationOrchestrator[🎭 Conversation Orchestrator<br/>LangGraph Multi-Agent Coordinator]
+        
+        subgraph "💬 Conversation Management Agents"
+            DialogueAgent[💬 Dialogue Management Agent<br/>Turn-taking & Flow Control]
+            ClarificationAgent[❓ Clarification Agent<br/>Gap Detection & Question Generation]
+            ContextAgent[📝 Context Maintenance Agent<br/>Information Synthesis]
+            ProgressAgent[📊 Progress Tracking Agent<br/>Goal Achievement Monitoring]
+        end
+        
+        subgraph "⚖️ Legal Domain Agents"
+            LegalClassifier[📊 Legal Classification Agent<br/>Domain & Confidence Scoring]
+            LegalResearcher[🔍 Legal Research Agent<br/>Case Law & Statute Retrieval]
+            RiskAnalyzer[🚨 Risk Analysis Agent<br/>Urgency & Complexity Assessment]
+            ProcessGuide[📋 Process Guide Agent<br/>Step-by-step Procedure Mapping]
+        end
+        
+        subgraph "🎯 Recommendation Agents"
+            AdvocateMatchmaker[👨‍💼 Advocate Matching Agent<br/>ML-based Recommendation]
+            ActionPlanner[✅ Action Planning Agent<br/>Next Steps & Prioritization]
+            ResourceProvider[📚 Resource Provider Agent<br/>Document & Template Suggestions]
+            TimelineAgent[⏰ Timeline Agent<br/>Deadline & Schedule Management]
+        end
+        
+        subgraph "📝 Response Generation Agents"
+            ResponseStrategist[🎯 Response Strategy Agent<br/>Conversation Planning]
+            ContentGenerator[📝 Content Generation Agent<br/>Ollama 3.1 3B + Legal Fine-tuning]
+            ToneAdapter[🎭 Tone Adaptation Agent<br/>User-appropriate Communication]
+            QualityController[✅ Quality Control Agent<br/>Response Validation]
+        end
+    end
+    
+    %% Decision Making & Flow Control
+    subgraph "🔄 Conversation Flow Control"
+        FlowDecisionEngine[🎯 Flow Decision Engine<br/>Next Action Determination]
+        
+        ConversationFlows{🛣️ Conversation Flows}
+        ConversationFlows -->|Information Gathering| InfoGathering[📋 Information Gathering Flow]
+        ConversationFlows -->|Legal Guidance| GuidanceFlow[⚖️ Legal Guidance Flow]
+        ConversationFlows -->|Clarification Loop| ClarificationFlow[❓ Clarification Flow]
+        ConversationFlows -->|Recommendation| RecommendationFlow[👨‍💼 Recommendation Flow]
+        ConversationFlows -->|Progress Check| ProgressFlow[📊 Progress Review Flow]
+        ConversationFlows -->|Closure| ClosureFlow[✅ Conversation Closure]
+    end
+    
+    %% Response Assembly & Delivery
+    subgraph "🔧 Response Assembly Engine"
+        ResponseAssembler[🔧 Response Assembler<br/>Multi-component Integration]
+        
+        subgraph "📱 Response Formats"
+            ConversationalResponse[💬 Conversational Response<br/>Natural Language + Context]
+            StructuredGuidance[📋 Structured Guidance<br/>Process Steps + Documents]
+            InteractiveOptions[🎮 Interactive Options<br/>Quick Replies + Actions]
+            ProgressDashboard[📊 Progress Dashboard<br/>Visual Progress Tracking]
+            RecommendationCards[🎯 Recommendation Cards<br/>Advocate Profiles + Actions]
+        end
+        
+        ResponseRenderer[🎨 Response Renderer<br/>Multi-format Output Generation]
+        DeliveryEngine[📤 Delivery Engine<br/>WebSocket + Push Notifications]
+    end
+    
+    %% Feedback & Interaction Handling
+    subgraph "🎮 Interaction Management"
+        InteractionHandler[🎮 Interaction Handler<br/>User Action Processing]
+        FeedbackCollector[📝 Feedback Collector<br/>Satisfaction & Improvement Data]
+        ConversationAnalyzer[📊 Conversation Analyzer<br/>Turn Analysis & Optimization]
+        A11yManager[♿ Accessibility Manager<br/>Screen Reader + Voice Support]
+    end
+    
+    %% Learning & Adaptation
+    subgraph "🎓 Learning & Adaptation System"
+        ConversationLearner[🎓 Conversation Learning Engine<br/>Pattern Recognition & Improvement]
+        ModelTrainer[🏋️ Model Training Pipeline<br/>Continuous Learning from Interactions]
+        PersonalizationEngine[🎯 Personalization Engine<br/>User-specific Adaptation]
+        PerformanceMonitor[📈 Performance Monitor<br/>Conversation Success Metrics]
+    end
+    
+    %% Technical Flow Connections
+    WebSocket --> UserInput
+    UserInput --> InputValidator
+    InputValidator --> ContextLoader
+    ContextLoader --> SessionDB
+    SessionDB --> AuthService
+    
+    ContextLoader --> IntentClassifier
+    IntentClassifier --> MultilingualNLP
+    MultilingualNLP --> EntityExtractor
+    EntityExtractor --> ConversationNLU
+    
+    ConversationNLU --> StateManager
+    StateManager --> TopicTracker
+    TopicTracker --> ProgressTracker
+    ProgressTracker --> MemoryManager
+    
+    MemoryManager --> ConversationOrchestrator
+    ConversationOrchestrator --> DialogueAgent
+    ConversationOrchestrator --> ClarificationAgent
+    ConversationOrchestrator --> ContextAgent
+    ConversationOrchestrator --> ProgressAgent
+    
+    DialogueAgent --> LegalClassifier
+    ClarificationAgent --> LegalResearcher
+    ContextAgent --> RiskAnalyzer
+    ProgressAgent --> ProcessGuide
+    
+    LegalClassifier --> AdvocateMatchmaker
+    LegalResearcher --> ActionPlanner
+    RiskAnalyzer --> ResourceProvider
+    ProcessGuide --> TimelineAgent
+    
+    AdvocateMatchmaker --> ResponseStrategist
+    ActionPlanner --> ContentGenerator
+    ResourceProvider --> ToneAdapter
+    TimelineAgent --> QualityController
+    
+    ResponseStrategist --> FlowDecisionEngine
+    ContentGenerator --> FlowDecisionEngine
+    ToneAdapter --> FlowDecisionEngine
+    QualityController --> FlowDecisionEngine
+    
+    FlowDecisionEngine --> ConversationFlows
+    InfoGathering --> ResponseAssembler
+    GuidanceFlow --> ResponseAssembler
+    ClarificationFlow --> ResponseAssembler
+    RecommendationFlow --> ResponseAssembler
+    ProgressFlow --> ResponseAssembler
+    ClosureFlow --> ResponseAssembler
+    
+    ResponseAssembler --> ConversationalResponse
+    ResponseAssembler --> StructuredGuidance
+    ResponseAssembler --> InteractiveOptions
+    ResponseAssembler --> ProgressDashboard
+    ResponseAssembler --> RecommendationCards
+    
+    ConversationalResponse --> ResponseRenderer
+    StructuredGuidance --> ResponseRenderer
+    InteractiveOptions --> ResponseRenderer
+    ProgressDashboard --> ResponseRenderer
+    RecommendationCards --> ResponseRenderer
+    
+    ResponseRenderer --> DeliveryEngine
+    DeliveryEngine --> WebSocket
+    DeliveryEngine --> InteractionHandler
+    
+    InteractionHandler --> FeedbackCollector
+    FeedbackCollector --> ConversationAnalyzer
+    ConversationAnalyzer --> A11yManager
+    A11yManager --> SessionDB
+    
+    SessionDB --> ConversationLearner
+    ConversationLearner --> ModelTrainer
+    ModelTrainer --> PersonalizationEngine
+    PersonalizationEngine --> PerformanceMonitor
+    PerformanceMonitor --> ConversationOrchestrator
+    
+    %% Styling
+    classDef sessionStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef inputStyle fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef nlpStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef stateStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef agentStyle fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef flowStyle fill:#e0f2f1,stroke:#00695c,stroke-width:2px
+    classDef responseStyle fill:#fff8e1,stroke:#ff8f00,stroke-width:2px
+    classDef interactionStyle fill:#f1f8e9,stroke:#558b2f,stroke-width:2px
+    classDef learningStyle fill:#e8eaf6,stroke:#3f51b5,stroke-width:2px
+    
+    class WebSocket,SessionDB,AuthService sessionStyle
+    class UserInput,InputValidator,ContextLoader,IntentClassifier inputStyle
+    class MultilingualNLP,EntityExtractor,ConversationNLU nlpStyle
+    class StateManager,TopicTracker,ProgressTracker,MemoryManager stateStyle
+    class ConversationOrchestrator,DialogueAgent,ClarificationAgent,ContextAgent,ProgressAgent,LegalClassifier,LegalResearcher,RiskAnalyzer,ProcessGuide,AdvocateMatchmaker,ActionPlanner,ResourceProvider,TimelineAgent,ResponseStrategist,ContentGenerator,ToneAdapter,QualityController agentStyle
+    class FlowDecisionEngine,ConversationFlows,InfoGathering,GuidanceFlow,ClarificationFlow,RecommendationFlow,ProgressFlow,ClosureFlow flowStyle
+    class ResponseAssembler,ConversationalResponse,StructuredGuidance,InteractiveOptions,ProgressDashboard,RecommendationCards,ResponseRenderer,DeliveryEngine responseStyle
+    class InteractionHandler,FeedbackCollector,ConversationAnalyzer,A11yManager interactionStyle
+    class ConversationLearner,ModelTrainer,PersonalizationEngine,PerformanceMonitor learningStyle

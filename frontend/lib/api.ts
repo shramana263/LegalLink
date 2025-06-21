@@ -1,4 +1,5 @@
 import axiosClient from "@/lib/axiosClient";
+import axios from "axios";
 
 // Auth API endpoints
 const AuthAPI = {
@@ -355,6 +356,48 @@ const AppointmentAPI = {
   getAdvocateAppointments: () => axiosClient.get("/api/appointment/advocate/calendar"),
 };
 
+// AI API endpoints  
+const AiAPI = {
+  /**
+   * Send a chat message to AI service
+   * @param data - Object containing message and context
+   * @returns Promise resolving to AI response
+   */
+  sendMessage: (data: {
+    message: string;
+    userId?: string;
+    context?: any;
+  }) => {
+    const aiClient = axios.create({
+      baseURL: process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'http://localhost:8000',
+      timeout: 30000, // 30 second timeout for AI responses
+    });
+    return aiClient.post('/api/v1/chat', data);
+  },
+
+  /**
+   * Get AI service health status
+   * @returns Promise resolving to health status
+   */
+  getHealthStatus: () => {
+    const aiClient = axios.create({
+      baseURL: process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'http://localhost:8000',
+    });
+    return aiClient.get('/health');
+  },
+
+  /**
+   * Get available AI services
+   * @returns Promise resolving to service list
+   */
+  getServices: () => {
+    const aiClient = axios.create({
+      baseURL: process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'http://localhost:8000',
+    });
+    return aiClient.get('/api/v1/services');
+  },
+};
+
 // Export all API groups here
 export const API = {
   Auth: AuthAPI,
@@ -362,5 +405,6 @@ export const API = {
   Upload: UploadAPI,
   Social: SocialAPI,
   Appointment: AppointmentAPI,
+  AI: AiAPI,
   // Add more groups (e.g., User, Post) as needed
 };
