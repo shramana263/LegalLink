@@ -670,12 +670,21 @@ export default function AdvocatesPage() {
                       Add to Google Calendar
                     </a>
                   )}
-                  <Button
-                    className="w-full mt-2"
-                    onClick={() => setShowAppointmentModal(false)}
-                  >
-                    Close
-                  </Button>
+                  <div className="flex flex-col space-y-2 mt-4">
+                    <Button
+                      onClick={() => router.push("/appointments")}
+                      className="w-full"
+                    >
+                      View My Appointments
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => setShowAppointmentModal(false)}
+                    >
+                      Close
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>

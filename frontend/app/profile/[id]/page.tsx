@@ -13,6 +13,7 @@ import {
   CheckCircle,
   FileText,
   Edit,
+  Clock,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +26,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import dynamic from "next/dynamic";
 import AdvocateCasesList from "@/components/advocate/AdvocateCasesList";
 import AdvocatePostsList from "@/components/AdvocatePostsList";
+import AdvocateAppointmentsList from "@/components/advocate/AdvocateAppointmentsList";
 import Link from "next/link";
 
 // const EditProfileForm = dynamic(
@@ -35,6 +37,7 @@ import Link from "next/link";
 const OlaMap = dynamic(() => import("@/components/OlaMap"), { ssr: false });
 import DocumentViewer from "@/components/DocumentViewer";
 import { AdvocateDetailsModal } from "@/components/advocate/AdvocateDetailsModal";
+import AdvocateAvailabilitySlots from "@/components/advocate/AdvocateAvailabilitySlots";
 
 import {
   Dialog,
@@ -300,6 +303,9 @@ export default function ProfilePage() {
     });
   };
 
+  //connect
+  const handleConnect = async () => {};
+
   const handleVerificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setVerificationLoading(true);
@@ -518,6 +524,20 @@ export default function ProfilePage() {
                       >
                         <FileText className="h-4 w-4 mr-2" />
                         View Advocate Data
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleConnect()}
+                        asChild
+                      >
+                        <Link
+                          target="_blank"
+                          href={`http://localhost:3000/api/appointment/advocate/calendar/connect`}
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          Connect To Google Calendar
+                        </Link>
                       </Button>
 
                       {/* Verification buttons */}
@@ -904,6 +924,19 @@ export default function ProfilePage() {
               </Card>
             )}
 
+            {/* Advocate Appointments Section - Only for advocates */}
+            {isAdvocate && isOwnProfile && (
+              <Card className="overflow-hidden border shadow-md mt-8">
+                <CardHeader className="bg-muted/30">
+                  <CardTitle>My Appointments</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {/* Add content for appointments */}
+                  <AdvocateAppointmentsList />
+                </CardContent>
+              </Card>
+            )}
+
             {/* Advocate Cases List for Advocates */}
             {isAdvocate && (
               <div className="mt-8">
@@ -972,8 +1005,7 @@ export default function ProfilePage() {
                   )}
                 </div>
               </CardContent>
-            </Card>
-
+            </Card>{" "}
             {/* Contact Card */}
             <Card className="overflow-hidden border shadow-md">
               <CardHeader className="bg-muted/30">
@@ -1005,6 +1037,20 @@ export default function ProfilePage() {
                 </div>
               </CardContent>
             </Card>
+            {/* Advocate Availability Card - Only for advocates and not for own profile */}
+            {isAdvocate && !isOwnProfile && advocateData?.advocate_id && (
+              <Card className="overflow-hidden border shadow-md">
+                <CardHeader className="bg-muted/30 flex flex-row items-center justify-between">
+                  <CardTitle>Available Slots</CardTitle>
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <AdvocateAvailabilitySlots
+                    advocateId={advocateData.advocate_id}
+                  />
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
 
