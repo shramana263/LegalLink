@@ -33,6 +33,7 @@ export default function LoginPage() {
     setErrorMessage("")
 
     try {
+
       // const response = await API.Auth.signInEmail({
       //   email,
       //   password,
@@ -40,6 +41,7 @@ export default function LoginPage() {
       // console.log("response login: ",response.data)
       // const { token, user } = response.data
       const user = await login(email, password) as any // Adjust type as needed
+
       toast({
         title: "Login Successful",
         description: `Welcome, ${user.name || user.email}!`,
