@@ -23,14 +23,21 @@ export default function AdvocatePostsList({ limit }: { limit?: number }) {
   const [editLoading, setEditLoading] = useState(false);
   const [deletingPost, setDeletingPost] = useState<any | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await API.Social.getMyPosts();
         setPosts(response.data || []);
-      } catch (error) {
-        console.error("Error fetching my posts:", error);
+        setError(null);
+      } catch (error: any) {
+        if (error?.response?.status === 403) {
+          setError("You must be a verified advocate to view or create posts.");
+        } else {
+          setError("Failed to fetch your posts. Please try again later.");
+        }
+        setPosts([]);
       } finally {
         setIsLoading(false);
       }
@@ -140,6 +147,14 @@ export default function AdvocatePostsList({ limit }: { limit?: number }) {
             </CardContent>
           </Card>
         ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center text-red-500 py-8">
+        {error}
       </div>
     );
   }
