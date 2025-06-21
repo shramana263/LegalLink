@@ -21,6 +21,14 @@ import { API } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Slider } from "@/components/ui/slider";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 // Update Advocate interface to match backend response
 interface Advocate {
@@ -68,6 +76,16 @@ export default function AdvocatesPage() {
   const [experienceLevel, setExperienceLevel] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<string>("asc");
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+  const [selectedAdvocate, setSelectedAdvocate] = useState<Advocate | null>(null);
+  const [slots, setSlots] = useState<any[]>([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [slotsError, setSlotsError] = useState<string | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<any | null>(null);
+  const [reason, setReason] = useState("");
+  const [booking, setBooking] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState<any | null>(null);
+  const [bookingError, setBookingError] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -142,9 +160,53 @@ export default function AdvocatesPage() {
     searchParams,
   ]);
 
-  const handleConnectRequest = (advocateId: string) => {
-    // Handle connection request
-    console.log("Sending connection request to:", advocateId);
+  // Open modal and fetch slots
+  const handleConnectRequest = async (advocateId: string) => {
+    const advocate = advocates.find((a) => a.advocate_id === advocateId) || null;
+    setSelectedAdvocate(advocate);
+    setShowAppointmentModal(true);
+    setSlots([]);
+    setSlotsLoading(true);
+    setSlotsError(null);
+    setSelectedSlot(null);
+    setReason("");
+    setBooking(false);
+    setBookingSuccess(null);
+    setBookingError(null);
+    try {
+      const res = await API.Appointment.getAdvocateAvailability(advocateId);
+      setSlots(res.data || []);
+    } catch (err: any) {
+      let msg = "Failed to fetch available slots.";
+      if (err?.response?.data?.error) msg = err.response.data.error;
+      setSlotsError(msg);
+    } finally {
+      setSlotsLoading(false);
+    }
+  };
+
+  // Book appointment
+  const handleBook = async () => {
+    if (!selectedAdvocate || !selectedSlot) return;
+    setBooking(true);
+    setBookingError(null);
+    try {
+      const res = await API.Appointment.book({
+        advocate_id: selectedAdvocate.advocate_id,
+        startTime: selectedSlot.startTime,
+        endTime: selectedSlot.endTime,
+        reason,
+      });
+      setBookingSuccess(res.data);
+      toast({ title: "Appointment Booked!", description: "Check your email for details.", variant: "default" });
+    } catch (err: any) {
+      let msg = "Failed to book appointment.";
+      if (err?.response?.data?.error) msg = err.response.data.error;
+      setBookingError(msg);
+      toast({ title: "Error", description: msg, variant: "destructive" });
+    } finally {
+      setBooking(false);
+    }
   };
 
   if (isLoading) {
@@ -447,9 +509,7 @@ export default function AdvocatesPage() {
                       <Button
                         size="sm"
                         className="col-span-6"
-                        onClick={() =>
-                          handleConnectRequest(advocate.advocate_id)
-                        }
+                        onClick={() => handleConnectRequest(advocate.advocate_id)}
                       >
                         <Users className="h-4 w-4 mr-1" />
                         Connect
@@ -507,6 +567,93 @@ export default function AdvocatesPage() {
           </div>
         )}
       </div>
+      {/* Appointment Modal */}
+      <Dialog open={showAppointmentModal} onOpenChange={setShowAppointmentModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Book Appointment</DialogTitle>
+          </DialogHeader>
+          {selectedAdvocate && (
+            <div>
+              <div className="mb-2 font-medium">Advocate: {selectedAdvocate.name}</div>
+              {/* Step 1: Show slots */}
+              {!selectedSlot && !bookingSuccess && (
+                <div>
+                  <div className="mb-2">Select an available slot:</div>
+                  {slotsLoading ? (
+                    <div>Loading slots...</div>
+                  ) : slotsError ? (
+                    <div className="text-red-500 text-sm mb-2">{slotsError}</div>
+                  ) : slots.length === 0 ? (
+                    <div className="text-muted-foreground text-sm mb-2">No slots available.</div>
+                  ) : (
+                    <div className="flex flex-col gap-2 max-h-40 overflow-y-auto mb-2">
+                      {slots.map((slot, idx) => (
+                        <Button
+                          key={idx}
+                          variant={selectedSlot === slot ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setSelectedSlot(slot)}
+                        >
+                          {slot.startTime} - {slot.endTime}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+              {/* Step 2: Enter reason and confirm */}
+              {selectedSlot && !bookingSuccess && (
+                <div className="space-y-3">
+                  <div className="text-sm mb-1">Selected Slot: <span className="font-medium">{selectedSlot.startTime} - {selectedSlot.endTime}</span></div>
+                  <Textarea
+                    placeholder="Reason for appointment (required)"
+                    value={reason}
+                    onChange={e => setReason(e.target.value)}
+                    rows={3}
+                  />
+                  {bookingError && <div className="text-red-500 text-sm">{bookingError}</div>}
+                  <DialogFooter>
+                    <Button
+                      onClick={handleBook}
+                      disabled={booking || !reason.trim()}
+                      className="w-full"
+                    >
+                      {booking ? "Booking..." : "Confirm Appointment"}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => setSelectedSlot(null)}
+                      className="w-full mt-2"
+                    >
+                      Back to Slots
+                    </Button>
+                  </DialogFooter>
+                </div>
+              )}
+              {/* Step 3: Success and Google Calendar */}
+              {bookingSuccess && (
+                <div className="space-y-3 text-center">
+                  <div className="text-green-600 font-semibold">Appointment booked successfully!</div>
+                  {bookingSuccess.googleCalendarLink && (
+                    <a
+                      href={bookingSuccess.googleCalendarLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline"
+                    >
+                      Add to Google Calendar
+                    </a>
+                  )}
+                  <Button className="w-full mt-2" onClick={() => setShowAppointmentModal(false)}>
+                    Close
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
