@@ -304,7 +304,7 @@ export default function AdvocatePostsList({ limit }: { limit?: number }) {
         open={!!editingPost}
         onOpenChange={(open) => !open && setEditingPost(null)}
       >
-        <DialogContent>
+        <DialogContent className="form-modal-bg">
           <DialogHeader>
             <DialogTitle>Edit Post</DialogTitle>
           </DialogHeader>
@@ -352,7 +352,7 @@ export default function AdvocatePostsList({ limit }: { limit?: number }) {
         open={!!deletingPost}
         onOpenChange={(open) => !open && setDeletingPost(null)}
       >
-        <DialogContent>
+        <DialogContent className="form-modal-bg">
           <DialogHeader>
             <DialogTitle>Delete Post</DialogTitle>
           </DialogHeader>

@@ -129,7 +129,7 @@ export default function ReportAdvocateDialog({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] form-modal-bg">
         <DialogHeader>
           <DialogTitle className="text-red-500 flex items-center gap-2">
             <AlertTriangle className="h-5 w-5" />
