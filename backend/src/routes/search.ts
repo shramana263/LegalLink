@@ -34,6 +34,8 @@ const router = Router();
  *               experience_level:
  *                 type: string
  *                 enum: [Junior, MidLevel, Senior]
+ *               name:
+ *                 type: string
  *               fee_type:
  *                 type: string
  *                 default: Consultation
