@@ -222,7 +222,7 @@ export default function FeedContent() {
 										{post._count?.reactions || 0} reactions
 									</span>
 									<Dialog open={showReactionsFor === postId} onOpenChange={() => setShowReactionsFor(null)}>
-										<DialogContent>
+										<DialogContent className="form-modal-bg">
 											<DialogHeader>
 												<DialogTitle>Reactions</DialogTitle>
 											</DialogHeader>

@@ -52,7 +52,7 @@ export default function PostModal({ postId, open, onOpenChange }: PostModalProps
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-w-4xl p-0 flex flex-row">
+			<DialogContent className="max-w-4xl p-0 flex flex-row form-modal-bg">
 				<DialogTitle className="sr-only">Post Details</DialogTitle>
 				{/* Left: Post details */}
 				<div className="w-1/2 p-6 border-r border-border flex flex-col justify-center">

@@ -48,6 +48,7 @@ body {
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -88,7 +89,44 @@ body {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.sidebar-bg {
+  background: #f2f2f2;
+  background: linear-gradient(90deg, rgba(242, 242, 242, 1) 0%, rgba(242, 242, 242, 1) 82%, rgba(255, 255, 255, 0) 100%);
+}
+
+.dark .sidebar-bg {
+  background: linear-gradient(90deg, #18181b 0%, #232326 82%, rgba(24, 24, 27, 0) 100%)
+}
+
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* .sidebar-blur-right { */
+/* position: absolute;
+  top: 0;
+  right: -32px;
+  width: 32px;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(to right, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.1) 100%) !important;
+  filter: blur(12px);
+  z-index: 51;
+}
+@media (prefers-color-scheme: dark) {
+  .sidebar-blur-right {
+    background: linear-gradient(to right, rgba(24,24,24,0.7) 0%, rgba(24,24,24,0.1) 100%) !important;
+  }
+} */
+
+.forms-bg {
+  background: #f2f2f2;
+  background: radial-gradient(circle, rgba(242, 242, 242, 1) 0%, rgba(242, 242, 242, 1) 81%, rgba(242, 242, 242, 0) 100%);
 }
