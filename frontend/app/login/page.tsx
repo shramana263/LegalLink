@@ -37,6 +37,7 @@ export default function LoginPage() {
         email,
         password,
       })
+      console.log("Login response:", response)
       const { token, user } = response.data
       login(user, token)
       toast({
