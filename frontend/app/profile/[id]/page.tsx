@@ -7,7 +7,6 @@ import {
   Calendar,
   Star,
   Users,
-  MessageCircle,
   Phone,
   Mail,
   CheckCircle,
@@ -36,7 +35,6 @@ import Link from "next/link";
 // Use dynamic import for OlaMap to avoid SSR issues
 const OlaMap = dynamic(() => import("@/components/OlaMap"), { ssr: false });
 import DocumentViewer from "@/components/DocumentViewer";
-import { AdvocateDetailsModal } from "@/components/advocate/AdvocateDetailsModal";
 import AdvocateAvailabilitySlots from "@/components/advocate/AdvocateAvailabilitySlots";
 
 import {
@@ -418,7 +416,9 @@ export default function ProfilePage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         {/* Profile Header Card with gradient background */}
         <Card className="mb-8 overflow-hidden border-0 shadow-lg">
-          <div className="h-40 bg-gradient-to-r from-blue-600/90 to-purple-700/90 relative">
+          <div className="h-40 relative">
+            <div className="absolute inset-0 bg-gradient-to-b from-blue-700 via-blue-300 to-blue-300 dark:from-indigo-700 dark:via-indigo-950 dark:to-slate-900"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent opacity-150"></div>
             {isOwnProfile && (
               <Dialog open={editOpen} onOpenChange={setEditOpen}>
                 <DialogTrigger asChild>
@@ -510,10 +510,6 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="flex flex-wrap gap-2 pt-2">
-                  <Button size="sm">
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Message
-                  </Button>
 
                   {isAdvocate && !isOwnProfile && (
                     <Button size="sm" variant="outline">
@@ -536,14 +532,14 @@ export default function ProfilePage() {
                         </Button>
                       )}
 
-                      <Button
+                      {/* <Button
                         size="sm"
                         variant="outline"
                         onClick={() => setAdvocateDataOpen(true)}
                       >
                         <FileText className="h-4 w-4 mr-2" />
                         View Advocate Data
-                      </Button>
+                      </Button> */}
                       <Button
                         size="sm"
                         variant={isCalendarConnected ? "default" : "outline"}

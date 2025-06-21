@@ -273,11 +273,12 @@ export default function AdvocateProfilePage() {
           </Card>
         ) : advocate ? (
           <Card className="mb-8 overflow-hidden border shadow-lg rounded-lg">
-            <div className="h-40 bg-gradient-to-r from-blue-600/90 via-blue-500/80 to-purple-600/80 relative">
-              <div className="absolute inset-0 bg-black/5 backdrop-blur-[1px]"></div>
+            <div className="h-40 relative">
+              <div className="absolute inset-0 bg-gradient-to-b from-blue-700 via-blue-300 to-blue-300 dark:from-indigo-700 dark:via-indigo-950 dark:to-slate-900"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent opacity-150"></div>
             </div>
             <CardContent className="relative pt-0 pb-6">
-              <div className="flex flex-col md:flex-row items-start md:items-end gap-6 -mt-16">
+              <div className="flex p-5 flex-col md:flex-row items-start md:items-end gap-6 -mt-16">
                 <Avatar className="h-32 w-32 border-4 border-background shadow-md">
                   <AvatarImage
                     src={advocate.user?.image || "/placeholder.svg"}
@@ -305,7 +306,7 @@ export default function AdvocateProfilePage() {
                     </div>
                     <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-2">
                       {advocate.location_city && (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-4">
                           <MapPin className="h-3.5 w-3.5 text-primary/70" />
                           <span className="text-sm">
                             {advocate.location_city}
@@ -442,7 +443,7 @@ export default function AdvocateProfilePage() {
             <CardContent className="pt-6 space-y-6">
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="bg-background border border-border/60 p-4 rounded-lg">
-                  <h4 className="font-medium text-black dark:text-white text-primary-foreground mb-3 flex items-center">
+                  <h4 className="font-bold text-black dark:text-white mb-3 flex items-center">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
@@ -497,7 +498,7 @@ export default function AdvocateProfilePage() {
                   </div>
                 </div>
                 <div className="bg-background border border-border/60 p-4 rounded-lg">
-                  <h4 className="font-medium text-black dark:text-white text-primary-foreground mb-3 flex items-center">
+                  <h4 className="font-bold text-black dark:text-white mb-3 flex items-center">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
@@ -534,7 +535,7 @@ export default function AdvocateProfilePage() {
                 (advocate.jurisdiction_states &&
                   advocate.jurisdiction_states.length > 0)) && (
                 <div className="bg-background border border-border/60 p-4 rounded-lg">
-                  <h4 className="font-medium text-primary-foreground mb-3 flex items-center">
+                  <h4 className="font-bold text-black dark:text-white mb-3 flex items-center">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
@@ -545,7 +546,7 @@ export default function AdvocateProfilePage() {
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className="mr-2 text-primary"
+                      className="mr-2 text-primary "
                     >
                       <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
                       <circle cx="12" cy="10" r="3"></circle>
@@ -556,7 +557,7 @@ export default function AdvocateProfilePage() {
                     {advocate.location_city && (
                       <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-primary/70" />
-                        <span className="font-medium">
+                        <span className="font-medium text-primary/60">
                           {advocate.location_city}
                         </span>
                       </div>
@@ -588,7 +589,7 @@ export default function AdvocateProfilePage() {
               {advocate.language_preferences &&
                 advocate.language_preferences.length > 0 && (
                   <div className="bg-background border border-border/60 p-4 rounded-lg">
-                    <h4 className="font-medium text-primary-foreground mb-3 flex items-center">
+                    <h4 className="font-bold text-black dark:text-white mb-3 flex items-center">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="16"
@@ -623,7 +624,7 @@ export default function AdvocateProfilePage() {
                 )}
               {advocate.fee_structure && (
                 <div className="bg-background border border-border/60 p-4 rounded-lg">
-                  <h4 className="font-medium text-primary-foreground mb-3 flex items-center">
+                  <h4 className="font-bold text-black dark:text-white mb-3 flex items-center">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"

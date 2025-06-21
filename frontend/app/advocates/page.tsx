@@ -518,7 +518,7 @@ export default function AdvocatesPage() {
                         }
                       >
                         <Users className="h-4 w-4 mr-1" />
-                        Connect
+                        Book Appointment
                       </Button>
                       <Button
                         size="sm"
