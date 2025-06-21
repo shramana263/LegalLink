@@ -145,6 +145,9 @@ export default function ProfilePage() {
   const [cases, setCases] = useState<any[]>([]);
   const [casesLoading, setCasesLoading] = useState(false);
 
+  // State to track if calendar is connected
+  const [isCalendarConnected, setIsCalendarConnected] = useState(false);
+
   // Get current location for map
   useEffect(() => {
     getCurrentLocation()
@@ -302,9 +305,18 @@ export default function ProfilePage() {
       [e.target.name]: e.target.value,
     });
   };
-
   //connect
-  const handleConnect = async () => {};
+  const handleConnect = async () => {
+    // This is a placeholder as the actual connection happens via the Link/redirect
+    // The connection status will be updated when AdvocateAppointmentsList loads appointments
+    if (isCalendarConnected) {
+      // Already connected, so we don't need to do anything
+      toast({
+        title: "Already Connected",
+        description: "Your Google Calendar is already connected.",
+      });
+    }
+  };
 
   const handleVerificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -527,17 +539,30 @@ export default function ProfilePage() {
                       </Button>
                       <Button
                         size="sm"
-                        variant="outline"
+                        variant={isCalendarConnected ? "default" : "outline"}
                         onClick={() => handleConnect()}
                         asChild
+                        className={
+                          isCalendarConnected
+                            ? "bg-green-600 hover:bg-green-700"
+                            : ""
+                        }
                       >
-                        <Link
-                          target="_blank"
-                          href={`http://localhost:3000/api/appointment/advocate/calendar/connect`}
-                        >
-                          <FileText className="h-4 w-4 mr-2" />
-                          Connect To Google Calendar
-                        </Link>
+                        {isVerified &&
+                          (isCalendarConnected ? (
+                            <div>
+                              <CheckCircle className="h-4 w-4 mr-2" />
+                              Connected
+                            </div>
+                          ) : (
+                            <Link
+                              target="_blank"
+                              href={`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/appointment/advocate/calendar/connect`}
+                            >
+                              <Calendar className="h-4 w-4 mr-2" />
+                              Connect To Google Calendar
+                            </Link>
+                          ))}
                       </Button>
 
                       {/* Verification buttons */}
@@ -931,8 +956,13 @@ export default function ProfilePage() {
                   <CardTitle>My Appointments</CardTitle>
                 </CardHeader>
                 <CardContent>
+                  {" "}
                   {/* Add content for appointments */}
-                  <AdvocateAppointmentsList />
+                  <AdvocateAppointmentsList
+                    onCalendarConnected={setIsCalendarConnected}
+                    advocateId={advocateData?.advocate_id}
+                    isCalendarConnected={isCalendarConnected}
+                  />
                 </CardContent>
               </Card>
             )}

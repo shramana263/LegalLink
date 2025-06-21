@@ -45,7 +45,15 @@ interface Appointment {
   created_at?: string;
 }
 
-export default function AdvocateAppointmentsList() {
+interface AdvocateAppointmentsListProps {
+  onCalendarConnected?: (connected: boolean) => void;
+  advocateId?: string;
+  isCalendarConnected?: boolean;
+}
+
+export default function AdvocateAppointmentsList({
+  onCalendarConnected,
+}: AdvocateAppointmentsListProps = {}) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -79,6 +87,11 @@ export default function AdvocateAppointmentsList() {
         }
 
         setError(null);
+
+        // Notify parent component that calendar is connected
+        if (onCalendarConnected) {
+          onCalendarConnected(true);
+        }
       } catch (err: any) {
         console.error("Failed to fetch appointments:", err);
         setError(err?.response?.data?.message || "Failed to load appointments");
@@ -87,13 +100,18 @@ export default function AdvocateAppointmentsList() {
           description: "Could not load your appointments. Please try again.",
           variant: "destructive",
         });
+
+        // Notify parent component that calendar is not connected
+        if (onCalendarConnected) {
+          onCalendarConnected(false);
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchAppointments();
-  }, [toast]);
+  }, [toast, onCalendarConnected]);
 
   // Function to get status badge
   const getStatusBadge = (status: string) => {
