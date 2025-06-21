@@ -7,25 +7,33 @@ import { Button } from "@/components/ui/button"
 
 interface ProblemQueryProps {
   onSearch?: (query: string) => void
+  onChange?: (value: string) => void // <-- add this
   initialQuery?: string
   className?: string
   placeholder?: string
 }
 
-export default function ProblemQuery({
-  onSearch,
-  initialQuery = "",
-  className = "",
-  placeholder = "Describe your problem..."
-}: ProblemQueryProps) {
-  const [searchQuery, setSearchQuery] = useState(initialQuery)
+export default function ProblemQuery(props: ProblemQueryProps) {
+  const {
+    onSearch,
+    onChange,
+    initialQuery = "",
+    className = "",
+    placeholder = "Describe your problem..."
+  } = props;
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
 
   const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (searchQuery.trim()) {
-      onSearch?.(searchQuery)
+      onSearch?.(searchQuery);
     }
-  }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    onChange?.(e.target.value);
+  };
 
   return (
     <div className={`max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4 ${className}`}>
@@ -39,7 +47,7 @@ export default function ProblemQuery({
             placeholder={placeholder}
             className="flex-1 border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleInputChange}
           />
           <Button type="submit" size="sm" className="rounded-full m-1" variant="default">
             <Send className="h-4 w-4 mr-2" />

@@ -11,6 +11,7 @@ import NewsThread from "@/components/NewsThread";
 import CreatePostSection from "@/components/CreatePostSection";
 import ProblemQuery from "@/components/ProblemQuery";
 import { Menu, X } from "lucide-react";
+import { API } from "@/lib/api";
 
 export default function FeedPage() {
   const { user, isLoading } = useAuth();
@@ -27,6 +28,42 @@ export default function FeedPage() {
     // Handle search functionality here
     console.log("Searching for:", query);
   };
+
+  // Debounced search for feed page (improved: only triggers after user stops typing for 1000ms)
+  const [feedSearch, setFeedSearch] = useState("");
+  useEffect(() => {
+    if (feedSearch.length === 0) return;
+    if (feedSearch.length < 2) return; // Don't search for single letters
+    const handler = setTimeout(() => {
+      handleSearch(feedSearch);
+    }, 1000); // 1000ms debounce for longer pause
+    return () => clearTimeout(handler);
+  }, [feedSearch]);
+
+  // Advocate name suggestions for dropdown
+  const [advocateSuggestions, setAdvocateSuggestions] = useState<any[]>([]);
+  useEffect(() => {
+    if (feedSearch.length < 2) {
+      setAdvocateSuggestions([]);
+      return;
+    }
+    const handler = setTimeout(async () => {
+      try {
+        // Try searching by allowed properties: location_city, jurisdiction_states, specialization, etc.
+        // If you want to search by name, but the API does not support it, you must update the backend.
+        // For now, try searching by location_city as a demonstration.
+        const res = await API.Advocate.searchAdvocates({ location_city: feedSearch });
+        setAdvocateSuggestions(
+          Array.isArray(res.data)
+            ? res.data.map((a: any) => ({ name: a.name || a.user?.name, id: a.advocate_id }))
+            : []
+        );
+      } catch {
+        setAdvocateSuggestions([]);
+      }
+    }, 1000);
+    return () => clearTimeout(handler);
+  }, [feedSearch]);
 
   if (isLoading) {
     return (
@@ -71,7 +108,29 @@ export default function FeedPage() {
       </div>
 
       {/* Search Box */}
-      <ProblemQuery onSearch={handleSearch} />
+      <div className="relative">
+        <ProblemQuery 
+          onSearch={handleSearch} 
+          onChange={setFeedSearch}
+          initialQuery={feedSearch} 
+          placeholder="Search posts, advocates, or keywords..."
+        />
+        {advocateSuggestions.length > 0 && feedSearch.length >= 2 && (
+          <ul className="absolute left-0 right-0 mt-1 bg-white dark:bg-zinc-900 border rounded-lg shadow-lg z-20 max-h-60 overflow-auto">
+            {advocateSuggestions.map(a => (
+              <li key={a.id} className="px-4 py-2 hover:bg-muted cursor-pointer" 
+                  onMouseDown={() => {
+                    setFeedSearch(a.name);
+                    setAdvocateSuggestions([]);
+                    router.push(`/advocate/${a.id}`);
+                  }}>
+                {a.name}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      {/* Removed hidden input for feedSearch */}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -91,11 +150,6 @@ export default function FeedPage() {
             {/* Feed Content */}
             <FeedContent />
           </div>
-
-          {/* Right Sidebar - News Thread (Yellow section in reference) */}
-          {/* <div className="lg:col-span-3">
-            <NewsThread />
-          </div> */}
         </div>
       </div>
 
