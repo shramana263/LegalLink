@@ -61,17 +61,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    if (!email || !password) {
-      alert("Email and password are required.");
-      return;
-    }
     setIsLoading(true);
     try {
       const res = await API.Auth.signInEmail({ email, password });
       setUser(res.data.user);
       router.push("/feed");
+      return res.data.user; // Return user data for further use if needed
+    } catch (error) {
+      alert("Invalid login credentials");
+      setUser(null);
     } finally {
       setIsLoading(false);
+
     }
   };
 

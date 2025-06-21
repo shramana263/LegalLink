@@ -160,6 +160,26 @@ const router = express.Router();
 
 /**
  * @swagger
+ * /api/social/post/{post_id}/is_reacted:
+ *   get:
+ *     summary: Check if the authenticated user has reacted to a post
+ *     tags:
+ *       - Advocate Posts
+ *     parameters:
+ *       - in: path
+ *         name: post_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Reaction status
+ *       500:
+ *         description: Fetch failed
+ */
+
+/**
+ * @swagger
  * /api/social/post/{post_id}/reactions:
  *   get:
  *     summary: Get all reactions for a post
@@ -431,6 +451,22 @@ router.get("/post/:post_id/comments", async (req, res) => {
       orderBy: { created_at: "desc" },
     });
     res.json(comments);
+  } catch (err) {
+    res.status(500).json({ error: "Fetch failed", details: err.message });
+  }
+});
+
+router.get("/post/:post_id/is_reacted", getUser, async (req, res) => {
+  const { post_id } = req.params;
+
+  try {
+    const reactions = await prisma.post_reactions.findUnique({
+      where: { post_id_user_id: { post_id, user_id: res.locals.user.id } },
+    });
+
+    res.json(
+      reactions ? { reacted: true, type: reactions.type } : { reacted: false },
+    );
   } catch (err) {
     res.status(500).json({ error: "Fetch failed", details: err.message });
   }

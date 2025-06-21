@@ -139,8 +139,6 @@ const AdvocateAPI = {
   addRating: (advocateId: string, data: { stars: number; feedback?: string }) =>
     axiosClient.post(`/api/add-rating/${advocateId}`, data),
 
-
-
   /**
    * Report an advocate for a violation
    * @param data - Object containing report details
@@ -153,7 +151,7 @@ const AdvocateAPI = {
     category: string;
   }) => axiosClient.post("/api/advocate/report", data),
 
-/**
+  /**
    * Add a new legal case handled by the advocate
    * @param data - Case details
    * @returns Promise resolving to the response
@@ -182,15 +180,18 @@ const AdvocateAPI = {
    * @param data - Updated case details
    * @returns Promise resolving to the response
    */
-  updateCase: (caseId: string, data: {
-    case_type: string;
-    role: string;
-    year: number;
-    outcome: string;
-    description?: string;
-    court_name?: string;
-    duration_months?: number;
-  }) => axiosClient.patch(`/api/advocate/update-case/${caseId}`, data),
+  updateCase: (
+    caseId: string,
+    data: {
+      case_type: string;
+      role: string;
+      year: number;
+      outcome: string;
+      description?: string;
+      court_name?: string;
+      duration_months?: number;
+    }
+  ) => axiosClient.patch(`/api/advocate/update-case/${caseId}`, data),
 
   /**
    * Delete a case by ID (must belong to authenticated advocate)
@@ -207,8 +208,6 @@ const AdvocateAPI = {
    */
   getCaseById: (caseId: string) =>
     axiosClient.get(`/api/advocate/case/${caseId}`),
-
-
 
   // Add more advocate endpoints here as needed
 };
@@ -251,7 +250,8 @@ const SocialAPI = {
    * Get all posts by the logged-in advocate
    * @returns Promise resolving to the list of posts
    */
-  getMyPosts: () => axiosClient.get("/api/social/post/my"),
+  getMyPosts: (advocate_id: string) =>
+    axiosClient.get(`/api/social/post/${advocate_id}`),
 
   /**
    * Edit a post by the logged-in advocate
@@ -324,6 +324,66 @@ const SocialAPI = {
    */
   getPostById: (post_id: string) =>
     axiosClient.get(`/api/social/post/get/${post_id}`),
+
+  /**
+   * Check if the current user has reacted to a post
+   * @param post_id - The ID of the post
+   * @returns Promise resolving to an object indicating reaction status
+   */
+  getIsReacted: (post_id: string) =>
+    axiosClient.get(`/api/social/post/${post_id}/is_reacted`),
+};
+
+// Appointment API endpoints
+const AppointmentAPI = {
+  getAdvocateConnection: () => {
+    return axiosClient.get("/api/appointment/advocate/calendar/connect");
+  },
+
+  // Get all appointments from advocate's calendar
+  getAdvocateCalendarAppointments: () =>
+    axiosClient.get("/api/appointment/advocate/calendar"),
+
+  // Get available slots for an advocate (public)
+  getAdvocateAvailability: (advocateId: string) =>
+    axiosClient.get(`/api/appointment/advocate/availability/${advocateId}`),
+
+  // Book an appointment (user only)
+  book: (data: {
+    advocate_id: string;
+    startTime: string;
+    endTime: string;
+    reason: string;
+  }) => axiosClient.post("/api/appointment/book", data),
+
+  // Cancel an appointment (user or advocate)
+  cancel: (appointment_id: string) =>
+    axiosClient.post("/api/appointment/cancel", { appointment_id }),
+
+  // Confirm an appointment (advocate only)
+  confirm: (appointment_id: string) =>
+    axiosClient.post("/api/appointment/advocate/confirm", { appointment_id }),
+
+  // Get all appointments for the logged-in user
+  getUserAppointments: () =>
+    axiosClient.get("/api/appointment/user/appointments"),
+
+  // Get all appointments for the logged-in advocate
+  getAdvocateAppointments: () =>
+    axiosClient.get("/api/appointment/advocate/calendar"),
+
+  // Get a specific appointment by ID
+  getAppointmentById: (appointment_id: string) =>
+    axiosClient.get(`/api/appointment/details/${appointment_id}`),
+
+  // Add advocate availability slots (advocate only)
+  addAvailabilitySlot: (data: {
+    date: string;
+    startTime: string;
+    endTime: string;
+    isRecurring?: boolean;
+    daysOfWeek?: number[];
+  }) => axiosClient.post("/api/appointment/advocate/add-slot", data),
 };
 
 // Export all API groups here
@@ -332,5 +392,6 @@ export const API = {
   Advocate: AdvocateAPI,
   Upload: UploadAPI,
   Social: SocialAPI,
+  Appointment: AppointmentAPI,
   // Add more groups (e.g., User, Post) as needed
 };

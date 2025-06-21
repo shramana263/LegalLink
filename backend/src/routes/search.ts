@@ -1,6 +1,5 @@
 import { Router } from "express";
 import prisma from "../../prisma/PrismaClient";
-import { getUser } from "../middlewares/getUser";
 
 const router = Router();
 
@@ -35,6 +34,8 @@ const router = Router();
  *               experience_level:
  *                 type: string
  *                 enum: [Junior, MidLevel, Senior]
+ *               name:
+ *                 type: string
  *               fee_type:
  *                 type: string
  *                 default: Consultation
@@ -70,6 +71,7 @@ router.post("/advocate", async (req, res) => {
     fee_type = "Consultation",
     max_fee,
     min_rating,
+    name,
     sort_by,
     sort_order = "asc",
   } = req.body;
@@ -107,6 +109,15 @@ router.post("/advocate", async (req, res) => {
       where.specializations = {
         some: {
           specialization: specialization,
+        },
+      };
+    }
+
+    if (name) {
+      where.user = {
+        name: {
+          contains: name,
+          mode: "insensitive",
         },
       };
     }
