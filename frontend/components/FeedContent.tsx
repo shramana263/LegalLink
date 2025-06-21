@@ -35,6 +35,7 @@ export default function FeedContent() {
 	const { toast } = useToast()
 	const [reacting, setReacting] = useState<string | null>(null)
 	const [postReactions, setPostReactions] = useState<Record<string, string>>({}) // post_id: type
+	const [userReactedPosts, setUserReactedPosts] = useState<Record<string, boolean>>({}) // post_id: reacted
 	const [openComments, setOpenComments] = useState<Record<string, boolean>>({})
 	const [reactionsCount, setReactionsCount] = useState<Record<string, any>>({})
 	const [showReactionsFor, setShowReactionsFor] = useState<string | null>(null)
@@ -48,17 +49,28 @@ export default function FeedContent() {
 				setPosts(posts)
 				// Fetch user's reaction for each post
 				const reactions: Record<string, string> = {}
+				const userReacted: Record<string, boolean> = {}
 				await Promise.all(
 					posts.map(async (post: any) => {
 						const postId = post.id || post.post_id
 						if (!postId) return
+						if (!user?.id) return
 						try {
-							const res = await API.Social.getMyReaction(postId)
-							if (res.data?.type) reactions[postId] = res.data.type
-						} catch {}
+							const res = await API.Social.getIsReacted(postId)
+							const { reacted, type } = res.data || {}
+							if (reacted && type) {
+								reactions[postId] = type
+								userReacted[postId] = true
+							} else {
+								userReacted[postId] = false
+							}
+						} catch (err) {
+							console.error(`Error fetching is_reacted for post ${postId}:`, err)
+						}
 					})
 				)
 				setPostReactions(reactions)
+				setUserReactedPosts(userReacted)
 			} catch (error) {
 				console.error("Error fetching posts:", error)
 			} finally {

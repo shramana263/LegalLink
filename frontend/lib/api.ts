@@ -324,6 +324,14 @@ const SocialAPI = {
    */
   getPostById: (post_id: string) =>
     axiosClient.get(`/api/social/post/get/${post_id}`),
+
+  /**
+   * Check if the current user has reacted to a post
+   * @param post_id - The ID of the post
+   * @returns Promise resolving to an object indicating reaction status
+   */
+  getIsReacted: (post_id: string) =>
+    axiosClient.get(`/api/social/post/${post_id}/is_reacted`),
 };
 
 // Appointment API endpoints
