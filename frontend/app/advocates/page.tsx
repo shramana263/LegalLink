@@ -611,20 +611,38 @@ export default function AdvocatesPage() {
                           size="sm"
                           onClick={() => setSelectedSlot(slot)}
                         >
-                          {slot.startTime} - {slot.endTime}
+                          {new Date(slot.start).toLocaleDateString()}{" "}
+                          {new Date(slot.start).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}{" "}
+                          -{" "}
+                          {new Date(slot.end).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         </Button>
                       ))}
                     </div>
                   )}
                 </div>
               )}
-              {/* Step 2: Enter reason and confirm */}
+              {/* Step 2: Enter reason and confirm */}{" "}
               {selectedSlot && !bookingSuccess && (
                 <div className="space-y-3">
                   <div className="text-sm mb-1">
                     Selected Slot:{" "}
                     <span className="font-medium">
-                      {selectedSlot.startTime} - {selectedSlot.endTime}
+                      {new Date(selectedSlot.start).toLocaleDateString()}{" "}
+                      {new Date(selectedSlot.start).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}{" "}
+                      -{" "}
+                      {new Date(selectedSlot.end).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </span>
                   </div>
                   <Textarea

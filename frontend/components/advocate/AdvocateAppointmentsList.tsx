@@ -96,9 +96,9 @@ export default function AdvocateAppointmentsList({
         console.error("Failed to fetch appointments:", err);
         setError(err?.response?.data?.message || "Failed to load appointments");
         toast({
-          title: "Error",
-          description: "Could not load your appointments. Please try again.",
-          variant: "destructive",
+          title: "Not Verified or Not Connected To Calendar",
+          description: "Could not load your appointments. Please Get Verified.",
+          variant: "default",
         });
 
         // Notify parent component that calendar is not connected
