@@ -147,6 +147,13 @@ export default function ProfilePage() {
 
   // State to track if calendar is connected
   const [isCalendarConnected, setIsCalendarConnected] = useState(false);
+  
+  useEffect(() => {
+    // Check calendar connection status in a different way if needed
+    // For example, you could make an API call here
+  }, [advocateData?.advocate_id]);
+
+  useEffect(() => {}, []);
 
   // Get current location for map
   useEffect(() => {
@@ -959,7 +966,8 @@ export default function ProfilePage() {
                   {" "}
                   {/* Add content for appointments */}
                   <AdvocateAppointmentsList
-                    onCalendarConnected={setIsCalendarConnected}
+                    // onCalendarConnected={setIsCalendarConnected}
+                    onCalendarConnected={() => {}}
                     advocateId={advocateData?.advocate_id}
                     isCalendarConnected={isCalendarConnected}
                   />
@@ -1076,6 +1084,7 @@ export default function ProfilePage() {
                 </CardHeader>
                 <CardContent>
                   <AdvocateAvailabilitySlots
+                    onCalendarConnected={() => {}}
                     advocateId={advocateData.advocate_id}
                   />
                 </CardContent>

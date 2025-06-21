@@ -27,10 +27,12 @@ interface AvailabilitySlot {
 
 interface AdvocateAvailabilitySlotsProps {
   advocateId: string;
+  onCalendarConnected: (connected: boolean) => void;
 }
 
 export default function AdvocateAvailabilitySlots({
   advocateId,
+  onCalendarConnected,
 }: AdvocateAvailabilitySlotsProps) {
   const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,11 +55,13 @@ export default function AdvocateAvailabilitySlots({
           advocateId
         );
         setSlots(response.data.slots || []);
+        onCalendarConnected(true);
       } catch (err: any) {
         console.error("Failed to fetch availability slots:", err);
         setError(
           err?.response?.data?.message || "Failed to fetch availability slots"
         );
+        onCalendarConnected(false);
         setSlots([]);
       } finally {
         setIsLoading(false);
