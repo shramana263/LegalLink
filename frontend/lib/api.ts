@@ -251,7 +251,7 @@ const SocialAPI = {
    * Get all posts by the logged-in advocate
    * @returns Promise resolving to the list of posts
    */
-  getMyPosts: () => axiosClient.get("/api/social/post/my"),
+  getMyPosts: (advocate_id: string) => axiosClient.get(`/api/social/post/${advocate_id}`),
 
   /**
    * Edit a post by the logged-in advocate
