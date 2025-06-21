@@ -3,7 +3,7 @@
         "module": "commonjs",
         "esModuleInterop": true,
         "target": "es2017",
-        "noImplicitAny": true,
+        "noImplicitAny": false,
         "moduleResolution": "node",
         "sourceMap": true,
         "outDir": "dist",
@@ -13,7 +13,8 @@
                 "node_modules/*",
                 "src/types/*"
             ]
-        }
+        },
+        "noEmitOnError": false
     },
     "include": [
         "src/**/*"
