@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { Skeleton } from "./ui/skeleton";
 import { MessageCircle, Share, MoreHorizontal, ThumbsUp } from "lucide-react";
 import { API } from "@/lib/api";
 import {
@@ -30,20 +29,37 @@ export default function AdvocatePostsList({ limit }: { limit?: number }) {
   const [deletingPost, setDeletingPost] = useState<any | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
     const fetchData = async () => {
-      const advData = (await API.Advocate.getAdvocateData()).data;
-
-      if (!advData || !advData.advocate_id) {
-        return setError("Advocate data not found.");
-      }
-
       try {
+        // First get advocate data to get the advocate_id
+        const advData = (await API.Advocate.getAdvocateData()).data;
+
+        if (!advData || !advData.advocate_id) {
+          return setError("Advocate data not found.");
+        }
+
+        // Get profile data for image and name
+        const profileData = (await API.Auth.getProfile()).data;
+
+        // Get posts using the advocate_id
         const response = await API.Social.getMyPosts(
           advData.advocate_id as string
         );
-        setPosts(response.data || []);
+        // Add profile data to each post
+        const postsWithProfile = (response.data || []).map((post: any) => ({
+          ...post,
+          advocate: {
+            ...post.advocate,
+            user: {
+              ...post.advocate?.user,
+              name: profileData.name,
+              image: profileData.image,
+            },
+          },
+        }));
+
+        setPosts(postsWithProfile);
         setError(null);
       } catch (error: any) {
         if (error?.response?.status === 403) {
