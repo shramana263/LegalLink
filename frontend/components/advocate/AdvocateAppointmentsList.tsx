@@ -9,6 +9,8 @@ import {
   MapPin,
   Loader2,
   ChevronRight,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 import { API } from "@/lib/api";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,6 +19,14 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Appointment {
   id: string;
@@ -45,10 +55,28 @@ interface Appointment {
   created_at?: string;
 }
 
-export default function AdvocateAppointmentsList() {
+interface AdvocateAppointmentsListProps {
+  onCalendarConnected?: (connected: boolean) => void;
+  advocateId?: string;
+  isCalendarConnected?: boolean;
+}
+
+export default function AdvocateAppointmentsList({
+  onCalendarConnected,
+}: AdvocateAppointmentsListProps = {}) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [appointmentToConfirm, setAppointmentToConfirm] = useState<
+    string | null
+  >(null);
+  const [appointmentToCancel, setAppointmentToCancel] = useState<string | null>(
+    null
+  );
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+
   const router = useRouter();
   const { toast } = useToast();
   useEffect(() => {
@@ -79,21 +107,31 @@ export default function AdvocateAppointmentsList() {
         }
 
         setError(null);
+
+        // Notify parent component that calendar is connected
+        if (onCalendarConnected) {
+          onCalendarConnected(true);
+        }
       } catch (err: any) {
         console.error("Failed to fetch appointments:", err);
         setError(err?.response?.data?.message || "Failed to load appointments");
         toast({
-          title: "Error",
-          description: "Could not load your appointments. Please try again.",
-          variant: "destructive",
+          title: "Not Verified or Not Connected To Calendar",
+          description: "Could not load your appointments. Please Get Verified.",
+          variant: "default",
         });
+
+        // Notify parent component that calendar is not connected
+        if (onCalendarConnected) {
+          onCalendarConnected(false);
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchAppointments();
-  }, [toast]);
+  }, [toast, onCalendarConnected]);
 
   // Function to get status badge
   const getStatusBadge = (status: string) => {
@@ -136,6 +174,78 @@ export default function AdvocateAppointmentsList() {
         );
       default:
         return null;
+    }
+  };
+
+  // Handle appointment confirmation
+  const handleConfirm = async () => {
+    if (!appointmentToConfirm) return;
+
+    setActionLoading(true);
+    try {
+      await API.Appointment.confirm(appointmentToConfirm);
+
+      // Update the appointment in the list
+      setAppointments(
+        appointments.map((appointment) =>
+          appointment.id === appointmentToConfirm
+            ? { ...appointment, status: "confirmed", is_confirmed: true }
+            : appointment
+        )
+      );
+
+      toast({
+        title: "Appointment Confirmed",
+        description: "The appointment has been confirmed successfully.",
+      });
+    } catch (err: any) {
+      console.error("Failed to confirm appointment:", err);
+      toast({
+        title: "Error",
+        description:
+          err?.response?.data?.message || "Failed to confirm appointment",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(false);
+      setShowConfirmDialog(false);
+      setAppointmentToConfirm(null);
+    }
+  };
+
+  // Handle appointment cancellation
+  const handleCancel = async () => {
+    if (!appointmentToCancel) return;
+
+    setActionLoading(true);
+    try {
+      await API.Appointment.cancel(appointmentToCancel);
+
+      // Update the appointment in the list
+      setAppointments(
+        appointments.map((appointment) =>
+          appointment.id === appointmentToCancel
+            ? { ...appointment, status: "cancelled" }
+            : appointment
+        )
+      );
+
+      toast({
+        title: "Appointment Cancelled",
+        description: "The appointment has been cancelled successfully.",
+      });
+    } catch (err: any) {
+      console.error("Failed to cancel appointment:", err);
+      toast({
+        title: "Error",
+        description:
+          err?.response?.data?.message || "Failed to cancel appointment",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(false);
+      setShowCancelDialog(false);
+      setAppointmentToCancel(null);
     }
   };
 
@@ -222,17 +332,18 @@ export default function AdvocateAppointmentsList() {
               appointment.status ||
               (appointment.is_confirmed ? "confirmed" : "pending");
 
+            // Determine if appointment actions are allowed
+            const isPast = new Date() > (endDate || new Date());
+            const canTakeAction =
+              !isPast && (status === "pending" || status === "confirmed");
+
             return (
               <Card
                 key={appointment.id || Math.random().toString(36).substr(2, 9)}
-                className="border border-muted hover:border-muted-foreground/20 transition-colors cursor-pointer"
-                onClick={() =>
-                  appointment.id &&
-                  router.push(`/appointments/${appointment.id}`)
-                }
+                className="border border-muted hover:border-muted-foreground/20 transition-colors"
               >
                 <CardContent className="p-4">
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-start">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-primary" />
@@ -285,10 +396,44 @@ export default function AdvocateAppointmentsList() {
                       )}
                     </div>
 
-                    <Button variant="ghost" size="sm" className="gap-1">
-                      <span className="text-xs">View</span>
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
+                    <div className="flex flex-col gap-2">
+
+                      {status === "pending" && canTakeAction && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (appointment.id) {
+                              setAppointmentToConfirm(appointment.id);
+                              setShowConfirmDialog(true);
+                            }
+                          }}
+                          className="border-green-200 hover:bg-green-50 hover:text-green-700 text-green-600"
+                        >
+                          <CheckCircle className="h-3.5 w-3.5 mr-1" />
+                          Confirm
+                        </Button>
+                      )}
+
+                      {canTakeAction && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (appointment.id) {
+                              setAppointmentToCancel(appointment.id);
+                              setShowCancelDialog(true);
+                            }
+                          }}
+                          className="border-red-200 hover:bg-red-50 hover:text-red-700 text-red-600"
+                        >
+                          <XCircle className="h-3.5 w-3.5 mr-1" />
+                          Cancel
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -298,6 +443,84 @@ export default function AdvocateAppointmentsList() {
             return null;
           }
         })}
+
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Confirm Appointment</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to confirm this appointment? This will
+              notify the client.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowConfirmDialog(false);
+                setAppointmentToConfirm(null);
+              }}
+              disabled={actionLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirm}
+              disabled={actionLoading}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {actionLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Confirming...
+                </>
+              ) : (
+                "Confirm Appointment"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancellation Dialog */}
+      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Cancel Appointment</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to cancel this appointment? This action
+              cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCancelDialog(false);
+                setAppointmentToCancel(null);
+              }}
+              disabled={actionLoading}
+            >
+              Back
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleCancel}
+              disabled={actionLoading}
+            >
+              {actionLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Cancelling...
+                </>
+              ) : (
+                "Cancel Appointment"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

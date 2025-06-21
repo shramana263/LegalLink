@@ -354,6 +354,7 @@ const AppointmentAPI = {
     startTime: string;
     endTime: string;
     reason: string;
+    notes?: string;
   }) => axiosClient.post("/api/appointment/book", data),
 
   // Cancel an appointment (user or advocate)
@@ -384,6 +385,24 @@ const AppointmentAPI = {
     isRecurring?: boolean;
     daysOfWeek?: number[];
   }) => axiosClient.post("/api/appointment/advocate/add-slot", data),
+
+  // Mark an appointment as completed (advocate only)
+  markAsCompleted: (appointment_id: string) =>
+    axiosClient.post("/api/appointment/advocate/complete", { appointment_id }),
+
+  // Reschedule an appointment (requires both parties to confirm)
+  requestReschedule: (data: {
+    appointment_id: string;
+    new_start_time: string;
+    new_end_time: string;
+    reason?: string;
+  }) => axiosClient.post("/api/appointment/reschedule-request", data),
+
+  // Confirm a reschedule request
+  confirmReschedule: (reschedule_request_id: string) =>
+    axiosClient.post("/api/appointment/confirm-reschedule", {
+      reschedule_request_id,
+    }),
 };
 
 // Export all API groups here
