@@ -47,6 +47,12 @@ export default function AdvocateProfilePage() {
   const [cases, setCases] = useState<any[]>([]);
   const [casesLoading, setCasesLoading] = useState(false);
 
+  // Appointment booking states
+  const [slots, setSlots] = useState<any[]>([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<any>(null);
+  const [booking, setBooking] = useState(false);
+
   useEffect(() => {
     if (!id) return;
 
@@ -161,6 +167,57 @@ export default function AdvocateProfilePage() {
   useEffect(() => {
     if (id) fetchCases(id as string);
   }, [id]);
+
+  // Fetch available slots for this advocate
+  useEffect(() => {
+    if (!id) return;
+    setSlotsLoading(true);
+    API.Appointment.getAdvocateAvailability(id as string)
+      .then((res) => setSlots(res.data))
+      .catch((err) => {
+        setSlots([]);
+        toast({
+          title: "Could not load available slots",
+          description: err?.response?.data?.error || err.message || String(err),
+          variant: "destructive",
+        });
+      })
+      .finally(() => setSlotsLoading(false));
+  }, [id]);
+
+  const handleBookSlot = async () => {
+    if (!selectedSlot) return;
+    if (!user) {
+      toast({
+        title: "Login required",
+        description: "Please login to book an appointment.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setBooking(true);
+    try {
+      await API.Appointment.book({
+        advocate_id: id,
+        startTime: selectedSlot.start,
+        endTime: selectedSlot.end,
+        reason: "Consultation", // You can add a reason input if needed
+      });
+      toast({
+        title: "Appointment booked!",
+        description: "Your appointment has been booked successfully.",
+      });
+      setSelectedSlot(null);
+    } catch (err: any) {
+      toast({
+        title: "Booking failed",
+        description: err?.response?.data?.error || err.message || String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setBooking(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -582,6 +639,46 @@ export default function AdvocateProfilePage() {
             <div className="mt-8 p-4">
               <h3 className="font-semibold mb-2 text-lg">Cases Handled</h3>
               <AdvocateCasesList cases={cases} loading={casesLoading} />
+            </div>
+
+            {/* Appointment Booking Section */}
+            <div className="mt-8 p-4 border rounded-lg bg-muted/10">
+              <h3 className="font-semibold mb-2 text-lg">Book an Appointment</h3>
+              {slotsLoading ? (
+                <Skeleton className="h-8 w-40" />
+              ) : slots.length > 0 ? (
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-2">
+                    {slots.map((slot: any, idx: number) => (
+                      <Button
+                        key={idx}
+                        variant={selectedSlot === slot ? "default" : "outline"}
+                        onClick={() => setSelectedSlot(slot)}
+                        disabled={booking}
+                        className={
+                          selectedSlot === slot ? "bg-primary text-white" : ""
+                        }
+                      >
+                        {new Date(slot.start).toLocaleString()} -{" "}
+                        {new Date(slot.end).toLocaleTimeString()}
+                      </Button>
+                    ))}
+                  </div>
+                  {selectedSlot && (
+                    <Button
+                      onClick={handleBookSlot}
+                      disabled={booking}
+                      className="mt-4"
+                    >
+                      {booking ? "Booking..." : "Book Selected Slot"}
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="text-muted-foreground">
+                  No available slots at the moment.
+                </div>
+              )}
             </div>
           </Card>
         ) : (

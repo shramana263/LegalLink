@@ -326,11 +326,41 @@ const SocialAPI = {
     axiosClient.get(`/api/social/post/get/${post_id}`),
 };
 
+// Appointment API endpoints
+const AppointmentAPI = {
+  // Get available slots for an advocate (public)
+  getAdvocateAvailability: (advocateId: string) =>
+    axiosClient.get(`/api/appointment/advocate/availability/${advocateId}`),
+
+  // Book an appointment (user only)
+  book: (data: {
+    advocate_id: string;
+    startTime: string;
+    endTime: string;
+    reason: string;
+  }) => axiosClient.post("/api/appointment/book", data),
+
+  // Cancel an appointment (user or advocate)
+  cancel: (appointment_id: string) =>
+    axiosClient.post("/api/appointment/cancel", { appointment_id }),
+
+  // Confirm an appointment (advocate only)
+  confirm: (appointment_id: string) =>
+    axiosClient.post("/api/appointment/advocate/confirm", { appointment_id }),
+
+  // Get all appointments for the logged-in user
+  getUserAppointments: () => axiosClient.get("/api/appointment/user/appointments"),
+
+  // Get all appointments for the logged-in advocate
+  getAdvocateAppointments: () => axiosClient.get("/api/appointment/advocate/calendar"),
+};
+
 // Export all API groups here
 export const API = {
   Auth: AuthAPI,
   Advocate: AdvocateAPI,
   Upload: UploadAPI,
   Social: SocialAPI,
+  Appointment: AppointmentAPI,
   // Add more groups (e.g., User, Post) as needed
 };
