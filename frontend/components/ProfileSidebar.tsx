@@ -103,7 +103,8 @@ export default function ProfileSidebar({ user }: ProfileSidebarProps) {
       {/* Main Profile Card */}
       <Card className="overflow-hidden">
         {/* Cover Image */}
-        <div className="h-16 bg-gradient-to-r from-blue-500 to-purple-600"></div>
+        <div className="h-16  bg-gradient-to-b from-blue-700 via-blue-300 to-blue-300 dark:from-indigo-700 dark:via-indigo-950 dark:to-slate-900 "></div>
+        <div className=" inset-0 bg-gradient-to-t from-background via-transparent opacity-150"></div>
 
         <CardContent className="relative pt-0 pb-4">
           {/* Profile Avatar */}

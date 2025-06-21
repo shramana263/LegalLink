@@ -96,7 +96,7 @@ export default function LoginPage() {
                       onChange={(e) => setEmail(e.target.value)}
                       required
                     />
-                    <p className="text-xs text-muted-foreground">Demo: rahul.sharma@email.com</p>
+                    <p className="text-xs text-muted-foreground">Demo: shramanashow@gmail.com</p>
                   </div>
 
                   <div className="space-y-2">
@@ -120,7 +120,7 @@ export default function LoginPage() {
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground">Demo: password123</p>
+                    <p className="text-xs text-muted-foreground">Demo: password</p>
                   </div>
 
                   {errorMessage && (
@@ -147,7 +147,7 @@ export default function LoginPage() {
                       onChange={(e) => setEmail(e.target.value)}
                       required
                     />
-                    <p className="text-xs text-muted-foreground">Demo: vikram.singh@lawfirm.com</p>
+                    <p className="text-xs text-muted-foreground">Demo: parthib.adv@gmail.com</p>
                   </div>
 
                   <div className="space-y-2">
@@ -171,7 +171,7 @@ export default function LoginPage() {
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground">Demo: password123</p>
+                    <p className="text-xs text-muted-foreground">Demo: password</p>
                   </div>
 
                   {errorMessage && (
