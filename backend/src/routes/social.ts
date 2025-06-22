@@ -531,7 +531,7 @@ router.post("/post/create", async (req, res) => {
   if (
     !text ||
     text.split(" ").length > 100 ||
-    !SPECIALIZATION_ENUM.includes(category.toUpperCase())
+    !SPECIALIZATION_ENUM.includes(category?.toUpperCase())
   ) {
     return res.status(400).json({
       error:

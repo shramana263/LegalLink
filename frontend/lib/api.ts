@@ -238,7 +238,7 @@ const SocialAPI = {
    * @param data - Object containing text and optional image_url
    * @returns Promise resolving to the created post
    */
-  createPost: (data: { text: string; image_url?: string }) =>
+  createPost: (data: { text: string; image_url?: string,category:string }) =>
     axiosClient.post("/api/social/post/create", data),
 
   /**
