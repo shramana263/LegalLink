@@ -107,7 +107,7 @@ export default function FeedPage() {
         </button>
       </div>
 
-      {/* Search Box */}
+      {/* Search Box
       <div className="relative">
         <ProblemQuery 
           onSearch={handleSearch} 
@@ -129,7 +129,7 @@ export default function FeedPage() {
             ))}
           </ul>
         )}
-      </div>
+      </div> */}
       {/* Removed hidden input for feedSearch */}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
