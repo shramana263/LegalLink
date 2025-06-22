@@ -90,15 +90,23 @@ export default function AdvocatesPage() {
   const [bookingError, setBookingError] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
-
   // Fetch advocates from backend API
   const fetchAdvocates = async (filters: any = {}) => {
     setIsLoading(true);
     setError(null);
     try {
+      console.log("Sending API request with filters:", filters);
       const res = await API.Advocate.searchAdvocates(filters);
       // Map backend response to Advocate[]
-      console.log("hello");
+      console.log("API Response:", res.data);
+
+      // Check if data exists and is an array
+      if (!res.data || !Array.isArray(res.data)) {
+        console.error("API returned invalid data format:", res.data);
+        setAdvocates([]);
+        return;
+      }
+
       const data = res.data.map((item: any, idx: number) => ({
         advocate_id: item.advocate_id,
         name: item.name || item.user?.name || "Unknown",
@@ -113,9 +121,10 @@ export default function AdvocatesPage() {
         verified: item.availability_status || false,
         languages: item.language_preferences || [],
       }));
-      console.log("data: ", data);
+      console.log("Processed data:", data);
       setAdvocates(data);
     } catch (err: any) {
+      console.error("API Error:", err);
       let message = "Failed to fetch advocates.";
       if (err?.response?.data?.error) message = err.response.data.error;
       else if (err?.message) message = err.message;
@@ -130,60 +139,81 @@ export default function AdvocatesPage() {
       setIsLoading(false);
     }
   };
-
-  // Initial fetch and on filter/search change
+  // Separate effect just for URL search parameter on initial load
   useEffect(() => {
-    // Build filters for API
-    const filters: any = {};
-    if (searchQuery) filters.name = searchQuery;
-    if (selectedSpecialization !== "all")
-      filters.specialization = selectedSpecialization;
-    if (selectedLocation !== "all") filters.location_city = selectedLocation;
-    if (minRating > 0) filters.min_rating = minRating;
-    if (maxFee > 0) filters.max_fee = maxFee;
-    if (feeType) filters.fee_type = feeType;
-    if (experienceLevel !== "all") filters.experience_level = experienceLevel;
-    if (sortBy) filters.sort_by = sortBy;
-    if (sortOrder) filters.sort_order = sortOrder;
-    fetchAdvocates(filters);
+    const urlSearch = searchParams?.get("search");
+    if (urlSearch && searchQuery === "") {
+      setSearchQuery(urlSearch);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    searchQuery,
-    selectedSpecialization,
-    selectedLocation,
-    minRating,
-    maxFee,
-    feeType,
-    experienceLevel,
-    sortBy,
-    sortOrder,
-    searchParams,
-  ]);
+  }, [searchParams]);
 
-  // Debounced search for advocates (improved: only triggers after user stops typing for 1000ms)
+  // Debounced search effect - only triggers when filters actually change
   useEffect(() => {
-    if (searchQuery.length === 0) {
-      fetchAdvocates({});
+    // Don't trigger search on very short queries to avoid frequent API calls
+    if (searchQuery.length === 1) {
       return;
     }
-    if (searchQuery.length < 2) return; // Don't search for single letters
+
+    // Create a timeout for debouncing
     const handler = setTimeout(() => {
-      const urlSearch = searchParams?.get("search");
-      if (urlSearch) setSearchQuery(urlSearch);
+      console.log("Building filters from:", {
+        searchQuery,
+        selectedSpecialization,
+        selectedLocation,
+        minRating,
+        maxFee,
+        feeType,
+        experienceLevel,
+        sortBy,
+        sortOrder,
+      });
+
       // Build filters for API
       const filters: any = {};
-      if (searchQuery) filters.name = searchQuery;
-      if (selectedSpecialization !== "all")
+
+      // Only add filters that have valid values
+      if (searchQuery && searchQuery.trim().length > 0) {
+        filters.name = searchQuery.trim();
+      }
+
+      if (selectedSpecialization && selectedSpecialization !== "all") {
         filters.specialization = selectedSpecialization;
-      if (selectedLocation !== "all") filters.location_city = selectedLocation;
-      if (minRating > 0) filters.min_rating = minRating;
-      if (maxFee > 0) filters.max_fee = maxFee;
-      if (feeType) filters.fee_type = feeType;
-      if (experienceLevel !== "all") filters.experience_level = experienceLevel;
-      if (sortBy) filters.sort_by = sortBy;
-      if (sortOrder) filters.sort_order = sortOrder;
+      }
+
+      if (selectedLocation && selectedLocation !== "all") {
+        filters.location_city = selectedLocation;
+      }
+
+      if (minRating && minRating > 0) {
+        filters.min_rating = minRating;
+      }
+
+      if (maxFee && maxFee > 0) {
+        filters.max_fee = maxFee;
+      }
+
+      if (feeType && feeType.length > 0) {
+        filters.fee_type = feeType;
+      }
+
+      if (experienceLevel && experienceLevel !== "all") {
+        filters.experience_level = experienceLevel;
+      }
+
+      if (sortBy && sortBy !== "all" && sortBy.length > 0) {
+        filters.sort_by = sortBy;
+      }
+
+      if (sortOrder && sortOrder.length > 0) {
+        filters.sort_order = sortOrder;
+      }
+
+      console.log("Applying filters:", filters);
       fetchAdvocates(filters);
-    }, 1000); // 1000ms debounce for longer pause
+    }, 800); // Increased to 800ms for better user experience
+
+    // Cleanup timeout on effect dependency changes
     return () => clearTimeout(handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -196,7 +226,6 @@ export default function AdvocatesPage() {
     experienceLevel,
     sortBy,
     sortOrder,
-    searchParams,
   ]);
 
   // Open modal and fetch slots
@@ -321,13 +350,23 @@ export default function AdvocatesPage() {
         {/* Search and Filters */}
         <div className="mb-10">
           <div className="flex flex-col md:flex-row md:items-end gap-5 bg-card p-6 rounded-xl shadow-md border border-border flex-wrap">
+            {" "}
             <div className="flex-1 relative min-w-[240px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 type="text"
                 placeholder="Search by name, specialization, or location..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  // Update the search query without triggering immediate search
+                  setSearchQuery(e.target.value);
+                }}
+                onKeyDown={(e) => {
+                  // Prevent form submission on Enter key
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                  }
+                }}
                 className="pl-10 w-full shadow-sm focus:ring-2 focus:ring-primary/30 transition-all"
               />
             </div>{" "}
