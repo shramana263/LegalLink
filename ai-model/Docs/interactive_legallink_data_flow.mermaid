@@ -1,0 +1,178 @@
+graph TB
+    %% User Session Management
+    subgraph "🔐 Session Management"
+        SessionStart[📱 Session Initiation]
+        UserContext[(👤 User Context Store<br/>- Profile<br/>- Location<br/>- Conversation History<br/>- Preferences)]
+        ConversationState[(💬 Conversation State<br/>- Current Topic<br/>- Query History<br/>- Clarification Needs<br/>- Progress Tracking)]
+    end
+    
+    %% Input Processing
+    subgraph "📥 Input Processing"
+        UserQuery[👤 User Query<br/>Natural Language]
+        ContextAware[🧠 Context-Aware Processing<br/>- Previous Queries<br/>- Ongoing Topic<br/>- User Intent History]
+        QueryType{❓ Query Type<br/>Detection}
+    end
+    
+    %% Knowledge Bases (Enhanced)
+    subgraph "🗄️ Enhanced Knowledge Bases"
+        LegalDB[(📚 Legal Database<br/>- India Code<br/>- State Laws<br/>- Precedents<br/>- Updates)]
+        ConversationKB[(💬 Conversational Knowledge<br/>- Common Clarifications<br/>- Follow-up Patterns<br/>- User Journey Maps)]
+        AdvocateDB[(👥 Advocate Database<br/>- Specializations<br/>- Availability<br/>- Reviews<br/>- Fee Structures)]
+        ProcessDB[(📋 Process Database<br/>- Step-by-step Guides<br/>- Document Templates<br/>- Timeline Templates)]
+    end
+    
+    %% Conversational AI Engine
+    subgraph "🤖 Conversational AI Engine"
+        direction TB
+        DialogueManager[🎭 Dialogue Manager<br/>LangGraph Orchestrator]
+        
+        subgraph "🔍 Conversation Agents"
+            ContextAgent[📝 Context Maintenance Agent]
+            ClarificationAgent[❓ Clarification Agent]
+            ProgressAgent[📊 Progress Tracking Agent]
+            MemoryAgent[🧠 Memory Management Agent]
+        end
+        
+        subgraph "⚖️ Legal Processing Agents"
+            ClassificationAgent[📊 Query Classification Agent]
+            LegalReasoningAgent[⚖️ Legal Reasoning Agent]
+            RiskAssessmentAgent[🚨 Risk Assessment Agent]
+            RecommendationAgent[👨‍💼 Advocate Recommendation Agent]
+        end
+        
+        subgraph "📝 Response Generation Agents"
+            ResponsePlannerAgent[🎯 Response Planning Agent]
+            ContentGenerationAgent[📝 Content Generation Agent]
+            ProgressiveDisclosureAgent[📊 Progressive Disclosure Agent]
+            FeedbackAgent[📈 Feedback Collection Agent]
+        end
+    end
+    
+    %% Conversation Flow Control
+    subgraph "🔄 Conversation Flow Control"
+        FlowDecision{🎯 Flow Decision}
+        InitialResponse[🆕 Initial Response]
+        FollowUpResponse[🔄 Follow-up Response]
+        ClarificationRequest[❓ Clarification Request]
+        ProgressUpdate[📊 Progress Update]
+        RecommendationPhase[👨‍💼 Recommendation Phase]
+        ClosurePhase[✅ Conversation Closure]
+    end
+    
+    %% Response Assembly (Enhanced)
+    subgraph "🔧 Enhanced Response Assembly"
+        ConversationRenderer[💬 Conversation Renderer]
+        ProgressRenderer[📊 Progress Renderer]
+        
+        subgraph "📋 Response Components"
+            ConversationalResponse[💬 Conversational Response<br/>- Natural Language<br/>- Contextual References<br/>- Next Step Suggestions]
+            LegalGuidance[⚖️ Legal Guidance<br/>- Relevant Laws<br/>- Process Steps<br/>- Documentation]
+            ProgressSummary[📊 Progress Summary<br/>- What's Covered<br/>- What's Remaining<br/>- Decision Points]
+            InteractiveElements[🎮 Interactive Elements<br/>- Quick Actions<br/>- Clarification Options<br/>- Progress Controls]
+        end
+    end
+    
+    %% User Interaction Handling
+    subgraph "🎮 User Interaction Handling"
+        InteractionCapture[🎯 Interaction Capture]
+        FeedbackProcessor[📝 Feedback Processor]
+        ProgressTracker[📊 Progress Tracker]
+        SatisfactionMeter[📈 Satisfaction Meter]
+    end
+    
+    %% Learning & Improvement (Enhanced)
+    subgraph "🎓 Enhanced Learning System"
+        ConversationAnalytics[📊 Conversation Analytics<br/>- Turn Success Rate<br/>- Clarification Patterns<br/>- Drop-off Points]
+        UserJourneyAnalysis[🛣️ User Journey Analysis<br/>- Common Paths<br/>- Friction Points<br/>- Success Patterns]
+        ModelImprovement[🔄 Model Improvement<br/>- Conversation Training<br/>- Response Optimization<br/>- Agent Coordination]
+    end
+    
+    %% Data Flow Connections
+    SessionStart --> UserContext
+    UserContext --> ConversationState
+    
+    UserQuery --> ContextAware
+    ContextAware --> ConversationState
+    ConversationState --> QueryType
+    
+    QueryType -->|New Topic| DialogueManager
+    QueryType -->|Follow-up| DialogueManager
+    QueryType -->|Clarification| DialogueManager
+    
+    DialogueManager --> ContextAgent
+    DialogueManager --> ClarificationAgent
+    DialogueManager --> ProgressAgent
+    DialogueManager --> MemoryAgent
+    
+    ContextAgent --> ClassificationAgent
+    ClarificationAgent --> LegalReasoningAgent
+    ProgressAgent --> RiskAssessmentAgent
+    MemoryAgent --> RecommendationAgent
+    
+    ClassificationAgent --> ResponsePlannerAgent
+    LegalReasoningAgent --> ContentGenerationAgent
+    RiskAssessmentAgent --> ProgressiveDisclosureAgent
+    RecommendationAgent --> FeedbackAgent
+    
+    ResponsePlannerAgent --> FlowDecision
+    ContentGenerationAgent --> FlowDecision
+    ProgressiveDisclosureAgent --> FlowDecision
+    FeedbackAgent --> FlowDecision
+    
+    FlowDecision -->|New Query| InitialResponse
+    FlowDecision -->|Continuing| FollowUpResponse
+    FlowDecision -->|Unclear| ClarificationRequest
+    FlowDecision -->|Status Check| ProgressUpdate
+    FlowDecision -->|Ready for Help| RecommendationPhase
+    FlowDecision -->|Complete| ClosurePhase
+    
+    InitialResponse --> ConversationRenderer
+    FollowUpResponse --> ConversationRenderer
+    ClarificationRequest --> ConversationRenderer
+    ProgressUpdate --> ProgressRenderer
+    RecommendationPhase --> ConversationRenderer
+    ClosurePhase --> ConversationRenderer
+    
+    ConversationRenderer --> ConversationalResponse
+    ConversationRenderer --> LegalGuidance
+    ProgressRenderer --> ProgressSummary
+    ConversationRenderer --> InteractiveElements
+    
+    ConversationalResponse --> InteractionCapture
+    LegalGuidance --> InteractionCapture
+    ProgressSummary --> InteractionCapture
+    InteractiveElements --> InteractionCapture
+    
+    InteractionCapture --> FeedbackProcessor
+    FeedbackProcessor --> ProgressTracker
+    ProgressTracker --> SatisfactionMeter
+    SatisfactionMeter --> ConversationState
+    
+    ConversationState --> ConversationAnalytics
+    ConversationAnalytics --> UserJourneyAnalysis
+    UserJourneyAnalysis --> ModelImprovement
+    ModelImprovement --> DialogueManager
+    
+    %% Database Connections
+    LegalDB --> LegalReasoningAgent
+    ConversationKB --> ClarificationAgent
+    AdvocateDB --> RecommendationAgent
+    ProcessDB --> ProgressiveDisclosureAgent
+    
+    %% Styling
+    classDef sessionStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef inputStyle fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef dataStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef aiStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef flowStyle fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef responseStyle fill:#e0f2f1,stroke:#00695c,stroke-width:2px
+    classDef interactionStyle fill:#fff8e1,stroke:#ff8f00,stroke-width:2px
+    classDef learningStyle fill:#f1f8e9,stroke:#558b2f,stroke-width:2px
+    
+    class SessionStart,UserContext,ConversationState sessionStyle
+    class UserQuery,ContextAware,QueryType,InteractionCapture,FeedbackProcessor,ProgressTracker,SatisfactionMeter inputStyle
+    class LegalDB,ConversationKB,AdvocateDB,ProcessDB dataStyle
+    class DialogueManager,ContextAgent,ClarificationAgent,ProgressAgent,MemoryAgent,ClassificationAgent,LegalReasoningAgent,RiskAssessmentAgent,RecommendationAgent,ResponsePlannerAgent,ContentGenerationAgent,ProgressiveDisclosureAgent,FeedbackAgent aiStyle
+    class FlowDecision,InitialResponse,FollowUpResponse,ClarificationRequest,ProgressUpdate,RecommendationPhase,ClosurePhase flowStyle
+    class ConversationRenderer,ProgressRenderer,ConversationalResponse,LegalGuidance,ProgressSummary,InteractiveElements responseStyle
+    class ConversationAnalytics,UserJourneyAnalysis,ModelImprovement learningStyle
