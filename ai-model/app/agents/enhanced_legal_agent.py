@@ -10,6 +10,7 @@ from dataclasses import dataclass
 
 from ..services.ollama_service import OllamaService, OllamaConfig
 from ..services.vector_db_service import VectorDBService
+from ..services.indian_kanoon_client import IndianKanoonClient
 
 logger = logging.getLogger(__name__)
 
@@ -99,45 +100,47 @@ class EnhancedLegalAgent:
     
     async def process_legal_query(self, legal_query: LegalQuery) -> Dict[str, Any]:
         """
-        Process a legal query using multi-model approach:
-        1. Training data (local vector DB) + Indian Kanoon API for case law
-        2. llama3.2:3b for legal intelligence & complex reasoning
-        3. gemma3 for language simplification & multilingual support
+        Process a legal query using the correct multi-model approach:
+        1. Training data (local vector DB) for local legal knowledge
+        2. Indian Kanoon API for past case law & legal precedents
+        3. llama3.2:3b for legal intelligence & complex reasoning
+        4. gemma3 for sentence simplification & multilingual support
         """
         if not self.initialized:
             raise Exception("Agent not initialized")
         
         try:
-            logger.info(f"Processing legal query: {legal_query.query[:100]}...")
+            logger.info(f"🔍 Processing legal query: {legal_query.query[:100]}...")
             
-            # Step 1: Get relevant context from training data
-            logger.info("🔍 Retrieving context from training data...")
+            # Step 1: Get relevant context from training data (local knowledge)
+            logger.info("� Retrieving context from local training data...")
             training_context = await self._get_relevant_context(legal_query)
             
-            # Step 2: Get case law from Indian Kanoon API
+            # Step 2: Get case law from Indian Kanoon API (past legal precedents)
             logger.info("📚 Retrieving case law from Indian Kanoon API...")
             case_law_context = await self._get_case_law_context(legal_query)
             
-            # Step 3: Combine contexts
+            # Step 3: Combine all contexts for comprehensive legal knowledge
             combined_context = self._combine_contexts(training_context, case_law_context)
             
-            # Step 4: Generate enhanced system prompt
+            # Step 4: Generate enhanced system prompt for legal reasoning
             system_prompt = self._generate_system_prompt(legal_query)
             
-            # Step 5: Use Legal Intelligence Model (llama3.2:3b) for complex reasoning
-            logger.info("🧠 Processing with Legal Intelligence Model (llama3.2:3b)...")
+            # Step 5: Use Legal Intelligence Model (llama3.2:3b) for complex legal reasoning
+            logger.info("🧠 Processing with Legal Intelligence Model (llama3.2:3b) for complex reasoning...")
             legal_response = await self.legal_ollama_service.generate_response(
                 prompt=legal_query.query,
                 context=combined_context,
                 system_prompt=system_prompt
             )
             
-            # Step 6: Use Language Model (gemma3) for simplification if needed
+            # Step 6: Use Language Model (gemma3) for simplification & multilingual support
+            logger.info("🔤 Processing with Language Model (gemma3) for simplification...")
             simplified_response = await self._simplify_response_if_needed(
                 legal_response, legal_query
             )
             
-            # Step 7: Post-process and format response
+            # Step 7: Post-process and format final response
             formatted_response = await self._format_response(
                 simplified_response, legal_query, combined_context
             )
@@ -148,14 +151,16 @@ class EnhancedLegalAgent:
                 "query_type": legal_query.query_type,
                 "sources": await self._get_sources_from_context(combined_context),
                 "model_info": {
-                    "legal_model": self.legal_ollama_config.model_name,
-                    "language_model": self.language_ollama_config.model_name,
-                    "case_law_source": "indian_kanoon_api"
+                    "legal_intelligence_model": self.legal_ollama_config.model_name,  # llama3.2:3b
+                    "language_simplification_model": self.language_ollama_config.model_name,  # gemma3
+                    "case_law_source": "indian_kanoon_api",
+                    "training_data_source": "local_vector_db"
                 },
                 "processing_details": {
                     "training_data_used": len(training_context) > 0,
                     "case_law_used": len(case_law_context) > 0,
-                    "response_simplified": simplified_response != legal_response
+                    "response_simplified": simplified_response != legal_response,
+                    "models_used": ["llama3.2:3b", "gemma3", "indian_kanoon_api"]
                 }
             }
             
@@ -356,8 +361,7 @@ Guidelines:
             if not search_results.get("success", False):
                 logger.warning("Failed to retrieve case law from Indian Kanoon")
                 return ""
-            
-            # Format case law context
+              # Format case law context
             case_law_parts = []
             for doc in search_results.get("documents", []):
                 case_law_parts.append(f"""

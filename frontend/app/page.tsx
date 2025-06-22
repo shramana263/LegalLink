@@ -1,9 +1,11 @@
-import { ChatBox } from '@/components/ChatBot'
+import LegalAssistant from '@/components/Chatbot_basic'
 import React from 'react'
 
 const page = () => {
   return (
-    <div><ChatBox/></div>
+    <div>
+      <LegalAssistant />
+    </div>
   )
 }
 
