@@ -5,7 +5,7 @@
     "main": "server.js",
     "scripts": {
         "start": "node dist/server.js",
-        "build": "tsc",
+        "build": "prisma generate && esbuild src/server.ts --bundle --platform=node --target=node16 --outdir=dist --external:prisma",
         "dev": "prisma generate && nodemon ./src/server.ts --exec ts-node",
         "dev:node": "nodemon ./src/server.ts --exec \"esr --cache\"",
         "watch-node": "nodemon dist/server.js",

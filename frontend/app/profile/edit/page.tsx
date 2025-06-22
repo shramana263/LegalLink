@@ -14,10 +14,10 @@ export default function EditProfilePage() {
   const { user } = useAuth();
   const [form, setForm] = useState({
     name: user?.name || "",
-    image: user?.avatar || "",
-    district: user?.district || "",
-    state: user?.state || "",
-    location: user?.location || "",
+    image: user?.image || "",
+    district: (user as any)?.district || "",
+    state: (user as any)?.state || "",
+    location: (user as any)?.location || "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");

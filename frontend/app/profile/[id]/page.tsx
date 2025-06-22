@@ -7,12 +7,12 @@ import {
   Calendar,
   Star,
   Users,
-  MessageCircle,
   Phone,
   Mail,
   CheckCircle,
   FileText,
   Edit,
+  Clock,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +25,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import dynamic from "next/dynamic";
 import AdvocateCasesList from "@/components/advocate/AdvocateCasesList";
 import AdvocatePostsList from "@/components/AdvocatePostsList";
+import AdvocateAppointmentsList from "@/components/advocate/AdvocateAppointmentsList";
 import Link from "next/link";
 
 // const EditProfileForm = dynamic(
@@ -34,7 +35,7 @@ import Link from "next/link";
 // Use dynamic import for OlaMap to avoid SSR issues
 const OlaMap = dynamic(() => import("@/components/OlaMap"), { ssr: false });
 import DocumentViewer from "@/components/DocumentViewer";
-import { AdvocateDetailsModal } from "@/components/advocate/AdvocateDetailsModal";
+import AdvocateAvailabilitySlots from "@/components/advocate/AdvocateAvailabilitySlots";
 
 import {
   Dialog,
@@ -142,6 +143,16 @@ export default function ProfilePage() {
   const [cases, setCases] = useState<any[]>([]);
   const [casesLoading, setCasesLoading] = useState(false);
 
+  // State to track if calendar is connected
+  const [isCalendarConnected, setIsCalendarConnected] = useState(false);
+  
+  useEffect(() => {
+    // Check calendar connection status in a different way if needed
+    // For example, you could make an API call here
+  }, [advocateData?.advocate_id]);
+
+  useEffect(() => {}, []);
+
   // Get current location for map
   useEffect(() => {
     getCurrentLocation()
@@ -178,7 +189,8 @@ export default function ProfilePage() {
         // If advocate, fetch advocateData next
         if (
           fetchedProfile &&
-          (fetchedProfile.userType === "advocate" || fetchedProfile.type === "advocate")
+          (fetchedProfile.userType === "advocate" ||
+            fetchedProfile.type === "advocate")
         ) {
           setIsAdvocateDataLoading(true);
           try {
@@ -190,7 +202,9 @@ export default function ProfilePage() {
             if (advRes.data.advocate_id) {
               setIsRatingLoading(true);
               try {
-                const ratingsRes = await API.Advocate.getAdvocateRatings(advRes.data.advocate_id);
+                const ratingsRes = await API.Advocate.getAdvocateRatings(
+                  advRes.data.advocate_id
+                );
                 console.log("ratings: ", ratingsRes.data);
                 if (!isMounted) return;
                 setAdvocateRatings(ratingsRes.data);
@@ -201,7 +215,9 @@ export default function ProfilePage() {
               }
               setCasesLoading(true);
               try {
-                const casesRes = await API.Advocate.getCases(advRes.data.advocate_id);
+                const casesRes = await API.Advocate.getCases(
+                  advRes.data.advocate_id
+                );
                 console.log("cases:", casesRes.data);
                 if (!isMounted) return;
                 setCases(casesRes.data);
@@ -241,7 +257,10 @@ export default function ProfilePage() {
     });
     setAdvocateEditOpen(false);
     // Refetch advocateData, ratings, and cases
-    if (profile && (profile.userType === "advocate" || profile.type === "advocate")) {
+    if (
+      profile &&
+      (profile.userType === "advocate" || profile.type === "advocate")
+    ) {
       setIsAdvocateDataLoading(true);
       setAdvocateDataError(null);
       API.Advocate.getAdvocateData()
@@ -291,6 +310,18 @@ export default function ProfilePage() {
       [e.target.name]: e.target.value,
     });
   };
+  //connect
+  const handleConnect = async () => {
+    // This is a placeholder as the actual connection happens via the Link/redirect
+    // The connection status will be updated when AdvocateAppointmentsList loads appointments
+    if (isCalendarConnected) {
+      // Already connected, so we don't need to do anything
+      toast({
+        title: "Already Connected",
+        description: "Your Google Calendar is already connected.",
+      });
+    }
+  };
 
   const handleVerificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -327,7 +358,10 @@ export default function ProfilePage() {
 
   // Derive isOwnProfile and isAdvocate for rendering
   const isOwnProfile = user && profile && user.id === profile.id;
-  const isAdvocate = !!(profile && (profile.userType === "advocate" || profile.type === "advocate"));
+  const isAdvocate = !!(
+    profile &&
+    (profile.userType === "advocate" || profile.type === "advocate")
+  );
 
   if (isLoading) {
     return (
@@ -382,7 +416,9 @@ export default function ProfilePage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         {/* Profile Header Card with gradient background */}
         <Card className="mb-8 overflow-hidden border-0 shadow-lg">
-          <div className="h-40 bg-gradient-to-r from-blue-600/90 to-purple-700/90 relative">
+          <div className="h-40 relative">
+            <div className="absolute inset-0 bg-gradient-to-b from-blue-700 via-blue-300 to-blue-300 dark:from-indigo-700 dark:via-indigo-950 dark:to-slate-900"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent opacity-150"></div>
             {isOwnProfile && (
               <Dialog open={editOpen} onOpenChange={setEditOpen}>
                 <DialogTrigger asChild>
@@ -410,7 +446,7 @@ export default function ProfilePage() {
               <Button
                 size="sm"
                 variant="outline"
-                className="absolute top-4 left-4 bg-white/80 hover:bg-white text-primary border-primary"
+                className="absolute top-4 left-4 bg-white/100 hover:bg-slate-300 dark:text-black text-primary border-primary"
                 onClick={() => setAddCaseOpen(true)}
               >
                 <FileText className="h-4 w-4 mr-2" /> Add Case
@@ -428,7 +464,7 @@ export default function ProfilePage() {
           </div>
 
           <CardContent className="relative pt-0 pb-6">
-            <div className="flex flex-col md:flex-row items-start md:items-end gap-6 -mt-16">
+            <div className="flex flex-col md:flex-row items-start md:items-end gap-6 -mt-14">
               <Avatar className="h-32 w-32 border-4 border-background shadow-md">
                 <AvatarImage
                   src={profile.image || "/placeholder.svg"}
@@ -443,7 +479,7 @@ export default function ProfilePage() {
 
               <div className="flex-1 space-y-3">
                 <div>
-                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
                     <h1 className="text-3xl font-bold">{profile.name}</h1>
                     {isAdvocate && (
                       <Badge className="bg-primary/90 hover:bg-primary">
@@ -457,7 +493,7 @@ export default function ProfilePage() {
                     )}
                   </div>
 
-                  <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-2">
+                  <div className="text-muted-foreground flex flex-wrap items-center mt-2 gap-x-4 gap-y-2">
                     {profile.location && (
                       <div className="flex items-center gap-1">
                         <MapPin className="h-3.5 w-3.5" />
@@ -474,10 +510,6 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="flex flex-wrap gap-2 pt-2">
-                  <Button size="sm">
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Message
-                  </Button>
 
                   {isAdvocate && !isOwnProfile && (
                     <Button size="sm" variant="outline">
@@ -500,13 +532,40 @@ export default function ProfilePage() {
                         </Button>
                       )}
 
-                      <Button
+                      {/* <Button
                         size="sm"
                         variant="outline"
                         onClick={() => setAdvocateDataOpen(true)}
                       >
                         <FileText className="h-4 w-4 mr-2" />
                         View Advocate Data
+                      </Button> */}
+                      <Button
+                        size="sm"
+                        variant={isCalendarConnected ? "default" : "outline"}
+                        onClick={() => handleConnect()}
+                        asChild
+                        className={
+                          isCalendarConnected
+                            ? "bg-green-600 hover:bg-green-700"
+                            : ""
+                        }
+                      >
+                        {isVerified &&
+                          (isCalendarConnected ? (
+                            <div>
+                              <CheckCircle className="h-4 w-4 mr-2" />
+                              Connected
+                            </div>
+                          ) : (
+                            <Link
+                              target="_blank"
+                              href={`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/appointment/advocate/calendar/connect`}
+                            >
+                              <Calendar className="h-4 w-4 mr-2" />
+                              Connect To Google Calendar
+                            </Link>
+                          ))}
                       </Button>
 
                       {/* Verification buttons */}
@@ -617,19 +676,31 @@ export default function ProfilePage() {
                                   className="px-3 py-1 text-blue-700 border-blue-200 hover:bg-blue-50 hover:text-blue-900 transition"
                                   onClick={() => setShowDocModal(true)}
                                 >
-                                  <FileText className="h-4 w-4 mr-2 text-blue-600" /><span>Verification Document</span>
+                                  <FileText className="h-4 w-4 mr-2 text-blue-600" />
+                                  <span>Verification Document</span>
                                 </Button>
-                                <Dialog open={showDocModal} onOpenChange={setShowDocModal}>
+                                <Dialog
+                                  open={showDocModal}
+                                  onOpenChange={setShowDocModal}
+                                >
                                   <DialogContent className="max-w-2xl">
                                     <DialogHeader>
-                                      <DialogTitle>Verification Document</DialogTitle>
+                                      <DialogTitle>
+                                        Verification Document
+                                      </DialogTitle>
                                     </DialogHeader>
-                                    <DocumentViewer url={advocateData.verification_document_url} />
+                                    <DocumentViewer
+                                      url={
+                                        advocateData.verification_document_url
+                                      }
+                                    />
                                   </DialogContent>
                                 </Dialog>
                               </>
                             ) : (
-                              <span className="italic text-muted-foreground">Not provided</span>
+                              <span className="italic text-muted-foreground">
+                                Not provided
+                              </span>
                             )}
                           </div>
                         </div>
@@ -796,12 +867,12 @@ export default function ProfilePage() {
                       <div className="text-sm text-muted-foreground">
                         Years of Practice
                       </div>
-                    </div>
+                    </div>{" "}
                     <div className="bg-muted/30 p-4 rounded-lg text-center">
                       <Users className="h-6 w-6 mx-auto mb-2 text-primary" />
                       <div className="font-bold text-xl">
-                        {profile.casesHandled || 0}
-                      </div>
+                        {cases?.length || profile.casesHandled || 0}
+                      </div>{" "}
                       <div className="text-sm text-muted-foreground">
                         Cases Handled
                       </div>
@@ -810,7 +881,9 @@ export default function ProfilePage() {
                       <Star className="h-6 w-6 mx-auto mb-2 text-primary" />
                       <div className="font-bold text-xl">
                         {advocateRatings?.averageRating
-                          ? parseFloat(advocateRatings.averageRating.toString()).toFixed(1)
+                          ? parseFloat(
+                              advocateRatings.averageRating.toString()
+                            ).toFixed(1)
                           : advocateData?.average_rating
                           ? parseFloat(
                               advocateData.average_rating.toString()
@@ -831,33 +904,69 @@ export default function ProfilePage() {
                   </div>
 
                   {/* Display feedback if available - prioritize separately fetched ratings */}
-                  {advocateRatings?.ratings && advocateRatings.ratings.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-border">
-                      <h4 className="font-medium mb-3">Client Feedback</h4>
-                      <div className="space-y-3">
-                        {advocateRatings.ratings.slice(0, 2).map((rating: any, idx: number) => (
-                          <div key={idx} className="bg-muted/20 p-3 rounded-lg">
-                            <div className="flex items-center gap-2 mb-1">
-                              {[...Array(5)].map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`h-4 w-4 ${i < rating.stars ? "text-yellow-400" : "text-gray-300"}`}
-                                  fill={i < rating.stars ? "#facc15" : "none"}
-                                />
-                              ))}
-                              <span className="text-xs text-muted-foreground ml-2">by {rating.user_id}</span>
-                            </div>
-                            <p className="text-sm italic">"{rating.feedback}"</p>
-                          </div>
-                        ))}
-                        {advocateRatings.ratings.length > 2 && (
-                          <p className="text-xs text-muted-foreground text-right">
-                            +{advocateRatings.ratings.length - 2} more feedback
-                          </p>
-                        )}
+                  {advocateRatings?.ratings &&
+                    advocateRatings.ratings.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-border">
+                        <h4 className="font-medium mb-3">Client Feedback</h4>
+                        <div className="space-y-3">
+                          {advocateRatings.ratings
+                            .slice(0, 2)
+                            .map((rating: any, idx: number) => (
+                              <div
+                                key={idx}
+                                className="bg-muted/20 p-3 rounded-lg"
+                              >
+                                <div className="flex items-center gap-2 mb-1">
+                                  {[...Array(5)].map((_, i) => (
+                                    <Star
+                                      key={i}
+                                      className={`h-4 w-4 ${
+                                        i < rating.stars
+                                          ? "text-yellow-400"
+                                          : "text-gray-300"
+                                      }`}
+                                      fill={
+                                        i < rating.stars ? "#facc15" : "none"
+                                      }
+                                    />
+                                  ))}
+                                  <span className="text-xs text-muted-foreground ml-2">
+                                    by {rating.user_id}
+                                  </span>
+                                </div>
+                                <p className="text-sm italic">
+                                  "{rating.feedback}"
+                                </p>
+                              </div>
+                            ))}
+                          {advocateRatings.ratings.length > 2 && (
+                            <p className="text-xs text-muted-foreground text-right">
+                              +{advocateRatings.ratings.length - 2} more
+                              feedback
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Advocate Appointments Section - Only for advocates */}
+            {isAdvocate && isOwnProfile && (
+              <Card className="overflow-hidden border shadow-md mt-8">
+                <CardHeader className="bg-muted/30">
+                  <CardTitle>My Appointments</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {" "}
+                  {/* Add content for appointments */}
+                  <AdvocateAppointmentsList
+                    // onCalendarConnected={setIsCalendarConnected}
+                    onCalendarConnected={() => {}}
+                    advocateId={advocateData?.advocate_id}
+                    isCalendarConnected={isCalendarConnected}
+                  />
                 </CardContent>
               </Card>
             )}
@@ -867,9 +976,16 @@ export default function ProfilePage() {
               <div className="mt-8">
                 <h3 className="font-semibold mb-2 text-lg">Cases Handled</h3>
                 {cases.length === 0 && !casesLoading ? (
-                  <div className="text-center text-muted-foreground py-4">No case details</div>
+                  <div className="text-center text-muted-foreground py-4">
+                    No case details
+                  </div>
                 ) : (
-                  <AdvocateCasesList advocateId={advocateData?.advocate_id} cases={cases} loading={casesLoading} onCaseUpdated={handleCaseChanged} />
+                  <AdvocateCasesList
+                    advocateId={advocateData?.advocate_id}
+                    cases={cases}
+                    loading={casesLoading}
+                    onCaseUpdated={handleCaseChanged}
+                  />
                 )}
               </div>
             )}
@@ -884,7 +1000,9 @@ export default function ProfilePage() {
                   <AdvocatePostsList limit={1} />
                   <div className="flex justify-end mt-4">
                     <Link href={`/profile/${profile.id}/posts`}>
-                      <Button variant="outline" size="sm">View All Posts</Button>
+                      <Button variant="outline" size="sm">
+                        View All Posts
+                      </Button>
                     </Link>
                   </div>
                 </CardContent>
@@ -921,8 +1039,7 @@ export default function ProfilePage() {
                   )}
                 </div>
               </CardContent>
-            </Card>
-
+            </Card>{" "}
             {/* Contact Card */}
             <Card className="overflow-hidden border shadow-md">
               <CardHeader className="bg-muted/30">
@@ -954,6 +1071,21 @@ export default function ProfilePage() {
                 </div>
               </CardContent>
             </Card>
+            {/* Advocate Availability Card - Only for advocates and not for own profile */}
+            {isAdvocate && !isOwnProfile && advocateData?.advocate_id && (
+              <Card className="overflow-hidden border shadow-md">
+                <CardHeader className="bg-muted/30 flex flex-row items-center justify-between">
+                  <CardTitle>Available Slots</CardTitle>
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <AdvocateAvailabilitySlots
+                    onCalendarConnected={() => {}}
+                    advocateId={advocateData.advocate_id}
+                  />
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
 

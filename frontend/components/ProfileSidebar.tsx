@@ -103,7 +103,8 @@ export default function ProfileSidebar({ user }: ProfileSidebarProps) {
       {/* Main Profile Card */}
       <Card className="overflow-hidden">
         {/* Cover Image */}
-        <div className="h-16 bg-gradient-to-r from-blue-500 to-purple-600"></div>
+        <div className="h-16  bg-gradient-to-b from-blue-700 via-blue-300 to-blue-300 dark:from-indigo-700 dark:via-indigo-950 dark:to-slate-900 "></div>
+        <div className=" inset-0 bg-gradient-to-t from-background via-transparent opacity-150"></div>
 
         <CardContent className="relative pt-0 pb-4">
           {/* Profile Avatar */}
@@ -184,7 +185,7 @@ export default function ProfileSidebar({ user }: ProfileSidebarProps) {
           </div>
 
           {/* Stats */}
-          <div className="mt-4 pt-4 border-t border-border">
+          {/* <div className="mt-4 pt-4 border-t border-border">
             <div className="flex justify-between text-sm">
               <div className="flex items-center space-x-1 text-muted-foreground">
                 <Eye className="h-4 w-4" />
@@ -199,7 +200,7 @@ export default function ProfileSidebar({ user }: ProfileSidebarProps) {
               </div>
               <span className="font-medium text-primary">1,234</span>
             </div>
-          </div>
+          </div> */}
 
           {/* View Profile Button */}
           <Link href={`/profile/${user.id}`} className="block mt-4">
@@ -221,7 +222,7 @@ export default function ProfileSidebar({ user }: ProfileSidebarProps) {
               <Users className="h-5 w-5 text-muted-foreground" />
               <span className="text-sm">Find Advocates</span>
             </Link>
-            <Link
+            {/* <Link
               href="/saved"
               className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted transition-colors"
             >
@@ -234,12 +235,12 @@ export default function ProfileSidebar({ user }: ProfileSidebarProps) {
             >
               <Calendar className="h-5 w-5 text-muted-foreground" />
               <span className="text-sm">Legal Events</span>
-            </Link>
+            </Link> */}
           </div>
         </CardContent>
       </Card>
 
-      {/* Premium Upgrade Card */}
+      {/* Premium Upgrade Card
       <Card className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950 dark:to-orange-950 border-amber-200 dark:border-amber-800">
         <CardContent className="p-4">
           <h4 className="font-semibold text-amber-800 dark:text-amber-200 mb-2">
@@ -252,7 +253,7 @@ export default function ProfileSidebar({ user }: ProfileSidebarProps) {
             Try Premium for ₹0
           </Button>
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 }

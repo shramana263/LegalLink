@@ -33,6 +33,7 @@ export default function LoginPage() {
     setErrorMessage("")
 
     try {
+
       // const response = await API.Auth.signInEmail({
       //   email,
       //   password,
@@ -40,6 +41,7 @@ export default function LoginPage() {
       // console.log("response login: ",response.data)
       // const { token, user } = response.data
       const user = await login(email, password) as any // Adjust type as needed
+
       toast({
         title: "Login Successful",
         description: `Welcome, ${user.name || user.email}!`,
@@ -94,7 +96,7 @@ export default function LoginPage() {
                       onChange={(e) => setEmail(e.target.value)}
                       required
                     />
-                    <p className="text-xs text-muted-foreground">Demo: rahul.sharma@email.com</p>
+                    <p className="text-xs text-muted-foreground">Demo: shramanashow@gmail.com</p>
                   </div>
 
                   <div className="space-y-2">
@@ -118,7 +120,7 @@ export default function LoginPage() {
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground">Demo: password123</p>
+                    <p className="text-xs text-muted-foreground">Demo: password</p>
                   </div>
 
                   {errorMessage && (
@@ -145,7 +147,7 @@ export default function LoginPage() {
                       onChange={(e) => setEmail(e.target.value)}
                       required
                     />
-                    <p className="text-xs text-muted-foreground">Demo: vikram.singh@lawfirm.com</p>
+                    <p className="text-xs text-muted-foreground">Demo: parthib.adv@gmail.com</p>
                   </div>
 
                   <div className="space-y-2">
@@ -169,7 +171,7 @@ export default function LoginPage() {
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground">Demo: password123</p>
+                    <p className="text-xs text-muted-foreground">Demo: password</p>
                   </div>
 
                   {errorMessage && (
