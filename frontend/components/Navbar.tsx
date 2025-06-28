@@ -21,6 +21,7 @@ import { Badge } from "./ui/badge"
 import CreatePostSection from "./CreatePostSection"
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog"
 import { API } from "@/lib/api"
+import LanguageDropdown from "./LanguageDropdown"
 
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -66,7 +67,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/feed" className="flex items-center space-x-2">
+          <Link href="/feed" className="flex items-center space-x-2 logo-container">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">
                 <Scale className="text-white dark:text-slate-900 h-6 w-6" />
@@ -76,6 +77,16 @@ export default function Navbar() {
           </Link>
 
           {/* Hamburger for mobile */}
+          <div className="lg:hidden">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2"
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </Button>
+          </div>
 
           {/* Desktop: Nav Items at the end */}
           <div className="hidden lg:flex items-center space-x-4 ml-auto">
@@ -142,6 +153,9 @@ export default function Navbar() {
             >
               {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </Button>
+
+            {/* Language Dropdown */}
+            <LanguageDropdown />
 
             {/* Profile Dropdown */}
             <DropdownMenu>
@@ -248,8 +262,13 @@ export default function Navbar() {
                 className="w-full justify-start"
               >
                 {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-                <span className="hidden sm:inline">{theme === "light" ? "Dark" : "Light"} Mode</span>
+                <span className="ml-2">{theme === "light" ? "Dark" : "Light"} Mode</span>
               </Button>
+
+              {/* Language Dropdown for Mobile */}
+              <div className="w-full">
+                <LanguageDropdown />
+              </div>
 
               {/* Profile & Logout */}
               <div className="border-t border-muted-foreground/20 pt-4 mt-4">
