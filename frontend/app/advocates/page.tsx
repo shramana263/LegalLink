@@ -104,6 +104,7 @@ export default function AdvocatesPage() {
 
   const [selectedSpecialization, setSelectedSpecialization] = useState("all");
   const [selectedLocation, setSelectedLocation] = useState("all");
+// frontend-translation
   const [experienceLevel, setExperienceLevel] = useState("all");
   const [feeType, setFeeType] = useState("Consultation");
   const [maxFee, setMaxFee] = useState(0);
@@ -197,6 +198,155 @@ export default function AdvocatesPage() {
       .finally(() => {
         setIsLoading(false);
       });
+ // frontend-integration 
+// main
+  const [minRating, setMinRating] = useState<number>(0);
+  const [maxFee, setMaxFee] = useState<number>(0);
+  const [feeType, setFeeType] = useState<string>("Consultation");
+  const [experienceLevel, setExperienceLevel] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("");
+  const [sortOrder, setSortOrder] = useState<string>("asc");
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+  const [selectedAdvocate, setSelectedAdvocate] = useState<Advocate | null>(
+    null
+  );
+  const [slots, setSlots] = useState<any[]>([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [slotsError, setSlotsError] = useState<string | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<any | null>(null);
+  const [reason, setReason] = useState("");
+  const [booking, setBooking] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState<any | null>(null);
+  const [bookingError, setBookingError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  // Fetch advocates from backend API
+  const fetchAdvocates = async (filters: any = {}) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      console.log("Sending API request with filters:", filters);
+      const res = await API.Advocate.searchAdvocates(filters);
+      // Map backend response to Advocate[]
+      console.log("API Response:", res.data);
+
+      // Check if data exists and is an array
+      if (!res.data || !Array.isArray(res.data)) {
+        console.error("API returned invalid data format:", res.data);
+        setAdvocates([]);
+        return;
+      }
+
+      const data = res.data.map((item: any, idx: number) => ({
+        advocate_id: item.advocate_id,
+        name: item.name || item.user?.name || "Unknown",
+        avatar: item.image || item.user?.image || "/placeholder.svg",
+        location: item.location_city || "",
+        bio: item.bio || "",
+        specializations: item.specializations || [],
+        experience: item.experience_years || "",
+        rating: item.average_rating || 0,
+        casesHandled: item.total_ratings || 0,
+        consultationFee: item.fee_structure?.Consultation || 0,
+        verified: item.availability_status || false,
+        languages: item.language_preferences || [],
+      }));
+      console.log("Processed data:", data);
+      setAdvocates(data);
+    } catch (err: any) {
+      console.error("API Error:", err);
+      let message = "Failed to fetch advocates.";
+      if (err?.response?.data?.error) message = err.response.data.error;
+      else if (err?.message) message = err.message;
+      setError(message);
+      setAdvocates([]);
+      toast({
+        title: "Error",
+        description: message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  // Separate effect just for URL search parameter on initial load
+  useEffect(() => {
+    const urlSearch = searchParams?.get("search");
+    if (urlSearch && searchQuery === "") {
+      setSearchQuery(urlSearch);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  // Debounced search effect - only triggers when filters actually change
+  useEffect(() => {
+    // Don't trigger search on very short queries to avoid frequent API calls
+    if (searchQuery.length === 1) {
+      return;
+    }
+
+    // Create a timeout for debouncing
+    const handler = setTimeout(() => {
+      console.log("Building filters from:", {
+        searchQuery,
+        selectedSpecialization,
+        selectedLocation,
+        minRating,
+        maxFee,
+        feeType,
+        experienceLevel,
+        sortBy,
+        sortOrder,
+      });
+
+      // Build filters for API
+      const filters: any = {};
+
+      // Only add filters that have valid values
+      if (searchQuery && searchQuery.trim().length > 0) {
+        filters.name = searchQuery.trim();
+      }
+
+      if (selectedSpecialization && selectedSpecialization !== "all") {
+        filters.specialization = selectedSpecialization;
+      }
+
+      if (selectedLocation && selectedLocation !== "all") {
+        filters.location_city = selectedLocation;
+      }
+
+      if (minRating && minRating > 0) {
+        filters.min_rating = minRating;
+      }
+
+      if (maxFee && maxFee > 0) {
+        filters.max_fee = maxFee;
+      }
+
+      if (feeType && feeType.length > 0) {
+        filters.fee_type = feeType;
+      }
+
+      if (experienceLevel && experienceLevel !== "all") {
+        filters.experience_level = experienceLevel;
+      }
+
+      if (sortBy && sortBy !== "all" && sortBy.length > 0) {
+        filters.sort_by = sortBy;
+      }
+
+      if (sortOrder && sortOrder.length > 0) {
+        filters.sort_order = sortOrder;
+      }
+
+      console.log("Applying filters:", filters);
+      fetchAdvocates(filters);
+    }, 800); // Increased to 800ms for better user experience
+
+    // Cleanup timeout on effect dependency changes
+    return () => clearTimeout(handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+// main
   }, [
     debouncedSearch,
     selectedSpecialization,
@@ -254,6 +404,7 @@ export default function AdvocatesPage() {
         <h1 className="text-3xl font-bold mb-6">Find Legal Advocates</h1>
 
         {/* Search and Filters */}
+        { /*frontend-translation*/}
         <div className="flex flex-col md:flex-row md:items-end gap-5 mb-10 flex-wrap bg-card p-6 rounded-xl shadow-md border border-border">
           {/* Search */}
           <div className="flex-1 relative min-w-[240px]">
@@ -405,6 +556,29 @@ export default function AdvocatesPage() {
                 placeholder="Add a comment (optional)"
                 value={ratingComment}
                 onChange={(e) => setRatingComment(e.target.value)}
+{ /*frontend-translation*/}
+                { /*main*/}
+        <div className="mb-10">
+          <div className="flex flex-col md:flex-row md:items-end gap-5 bg-card p-6 rounded-xl shadow-md border border-border flex-wrap">
+            {" "}
+            <div className="flex-1 relative min-w-[240px]">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                type="text"
+                placeholder="Search by name, specialization, or location..."
+                value={searchQuery}
+                onChange={(e) => {
+                  // Update the search query without triggering immediate search
+                  setSearchQuery(e.target.value);
+                }}
+                onKeyDown={(e) => {
+                  // Prevent form submission on Enter key
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                  }
+                }}
+                className="pl-10 w-full shadow-sm focus:ring-2 focus:ring-primary/30 transition-all"
+{ /*main*/}
               />
             </div>
             <DialogFooter>
