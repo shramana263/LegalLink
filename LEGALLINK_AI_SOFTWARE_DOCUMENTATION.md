@@ -1571,4 +1571,4 @@ async def test_websocket_conversation():
 
 ---
 
-*© 2024 LegalLink AI. All rights reserved. Built with ❤️ for legal accessibility in India.*
+*© 2025 LegalLink AI. All rights reserved. Built with ❤️ for legal accessibility in India.*
